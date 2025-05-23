@@ -4,8 +4,10 @@ import "leaflet/dist/leaflet.css";
 // import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.webpack.css";
 // import "leaflet-defaulticon-compatibility";
 
-import { MapContainer, TileLayer, Marker, Popup, Rectangle } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Rectangle, SVGOverlay } from "react-leaflet";
 import { LatLngExpression, LatLngTuple } from 'leaflet';
+import { useContext } from "react";
+import { SlideContext } from "@/app/page";
 
 interface MapProps {
     posix: LatLngExpression | LatLngTuple,
@@ -18,6 +20,9 @@ const defaults = {
 
 export default function Map (Map: MapProps) {
     const { zoom = defaults.zoom, posix } = Map;
+    const { layers } = useContext(SlideContext);
+
+    console.log("layers", layers);
 
     return (
         <MapContainer
@@ -29,14 +34,17 @@ export default function Map (Map: MapProps) {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <Popup position={posix}>Haiii</Popup>
-            <Rectangle 
-                bounds={[
-                    [posix[0], posix[1]], 
-                    [posix[0] + 0.005, posix[1] + 0.004]
-                ]} 
-                pathOptions={{ color: "black" }}
-            />
+            {layers.map((layer, index) => {
+                if (layer.type === "rectangle") {
+                    return (
+                        <Rectangle
+                            key={index}
+                            bounds={layer.bounds}
+                            pathOptions={layer.pathOptions}
+                        />
+                    )
+                }
+            })}
         </MapContainer>
     )
 }
