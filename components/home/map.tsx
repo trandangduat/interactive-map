@@ -34,6 +34,9 @@ export default function Map (Map: MapProps) {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             {layers.map((layer, index) => {
+                if (layer.isHidden) {
+                    return null;
+                }
                 if (!layer.isPinned && isPresenting && index > currentLayerIndex) {
                     return null;
                 }

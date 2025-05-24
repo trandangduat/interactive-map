@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LatLngBoundsExpression, PathOptions } from "leaflet";
-import { Lock, LockKeyhole, LockKeyholeOpen, Pin, PinOff, Square } from "lucide-react";
+import { Eye, EyeOff, Lock, LockKeyhole, LockKeyholeOpen, Pin, PinOff, Square } from "lucide-react";
 import dynamic from "next/dynamic";
 import { createContext, JSX, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
@@ -106,6 +106,17 @@ export default function Home() {
     });
   };
 
+  const toggleHideLayer = (index: number) => {
+    setLayers(prevLayers => {
+      const newLayers = [...prevLayers];
+      newLayers[index] = {
+        ...newLayers[index],
+        isHidden: !newLayers[index].isHidden,
+      };
+      return newLayers;
+    });
+  };
+
   useEffect(() => {
     const handleFullscreenChange = () => {
       if (!document.fullscreenElement) {
@@ -191,12 +202,19 @@ export default function Home() {
                     {layerIcon!}
                     {layer.order + " " + layer.type}
                   </div>
-                  <div>
+                  <div className="flex flex-row items-center gap-2">
                     <div className="cursor-pointer" onClick={() => toggleLockLayer(index)}>
                       {layer.isPinned ? (
                         <PinOff size={16} />
                       ) : (
                         <Pin size={16} />
+                      )}
+                    </div>
+                    <div className="cursor-pointer" onClick={() => toggleHideLayer(index)}>
+                      {layer.isHidden ? (
+                        <EyeOff size={16} />
+                      ) : (
+                        <Eye size={16} />
                       )}
                     </div>
                   </div>
