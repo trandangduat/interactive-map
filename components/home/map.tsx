@@ -20,7 +20,7 @@ const defaults = {
 
 export default function Map (Map: MapProps) {
     const { zoom = defaults.zoom, posix } = Map;
-    const { layers } = useContext(SlideContext);
+    const { layers, currentLayerIndex, isPresenting } = useContext(SlideContext);
 
     console.log("layers", layers);
 
@@ -29,12 +29,16 @@ export default function Map (Map: MapProps) {
             center={posix}
             zoom={zoom}
             style={{ height: "100%", width: "100%" }}
+            keyboard={false}
         >
             <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             {layers.map((layer, index) => {
+                if (isPresenting && index > currentLayerIndex) {
+                    return null;
+                }
                 if (layer.type === "rectangle") {
                     return (
                         <Rectangle
