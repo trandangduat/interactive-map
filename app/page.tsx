@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LatLngBoundsExpression, PathOptions } from "leaflet";
-import { Square } from "lucide-react";
+import { Lock, LockKeyhole, LockKeyholeOpen, Pin, PinOff, Square } from "lucide-react";
 import dynamic from "next/dynamic";
 import { createContext, JSX, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
@@ -16,6 +16,8 @@ export interface BaseLayer {
   type: string,
   order: number,
   uuid: string,
+  isPinned: boolean,
+  isHidden: boolean,
 }
 
 export interface RectLayer extends BaseLayer {
@@ -38,7 +40,6 @@ export interface ArrowLayer extends BaseLayer {
   pathOptions: PathOptions
 }
 
-// Thay đổi Layer thành union của 3 loại trên
 export type Layer = RectLayer | CircleLayer | ArrowLayer
 
 type SlideContextProps = {
@@ -70,6 +71,8 @@ export default function Home() {
       type: "rectangle",
       order: layers.length,
       uuid: uuidv4(),
+      isPinned: false,
+      isHidden: false,
       bounds: [[latLng[0] - Math.random() * 0.001, latLng[1] - Math.random() * 0.001], [latLng[0] + Math.random() * 0.001, latLng[1] + Math.random() * 0.001]],
       pathOptions: {
         color: "red",
@@ -88,7 +91,19 @@ export default function Home() {
 
   const handlePresent = () => {
     setIsPresenting(true);
+    setCurrentLayerIndex(-1);
     document.documentElement.requestFullscreen();
+  };
+
+  const toggleLockLayer = (index: number) => {
+    setLayers(prevLayers => {
+      const newLayers = [...prevLayers];
+      newLayers[index] = {
+        ...newLayers[index],
+        isPinned: !newLayers[index].isPinned,
+      };
+      return newLayers;
+    });
   };
 
   useEffect(() => {
@@ -161,9 +176,24 @@ export default function Home() {
                   break;
               }
               return (
-                <div key={layer.uuid} className="flex flex-row items-center p-2 m-2 gap-2 bg-slate-700 rounded-md">
-                  {layerIcon!}
-                  {layer.order + " " + layer.type}
+                <div
+                  key={layer.uuid}
+                  className={cn("flex flex-row justify-between items-center p-2 m-2 gap-2 bg-slate-700 rounded-md",
+                    layer.isPinned && "bg-slate-800"
+                  )}>
+                  <div className="flex flex-row items-center gap-2">
+                    {layerIcon!}
+                    {layer.order + " " + layer.type}
+                  </div>
+                  <div>
+                    <div className="cursor-pointer" onClick={() => toggleLockLayer(index)}>
+                      {layer.isPinned ? (
+                        <PinOff size={16} />
+                      ) : (
+                        <Pin size={16} />
+                      )}
+                    </div>
+                  </div>
                 </div>
               );
             })}

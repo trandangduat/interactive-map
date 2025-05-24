@@ -22,8 +22,6 @@ export default function Map (Map: MapProps) {
     const { zoom = defaults.zoom, posix } = Map;
     const { layers, currentLayerIndex, isPresenting } = useContext(SlideContext);
 
-    console.log("layers", layers);
-
     return (
         <MapContainer
             center={posix}
@@ -36,7 +34,7 @@ export default function Map (Map: MapProps) {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             {layers.map((layer, index) => {
-                if (isPresenting && index > currentLayerIndex) {
+                if (!layer.isPinned && isPresenting && index > currentLayerIndex) {
                     return null;
                 }
                 if (layer.type === "rectangle") {
