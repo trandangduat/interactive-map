@@ -124,17 +124,23 @@ export default function Home() {
     const handleNextPresentingLayer = (event: KeyboardEvent) => {
       if (event.key === "ArrowRight") {
         setCurrentLayerIndex((prev) => {
-          const nextId = prev + 1;
+          let nextId: number = prev + 1;
+          while (nextId + 1 < layers.length && (layers[nextId].isPinned || layers[nextId].isHidden)) {
+            nextId++;
+          }
           if (nextId >= layers.length) {
-            return prev;
+            nextId = layers.length - 1;
           }
           return nextId;
         });
       } else if (event.key === "ArrowLeft") {
         setCurrentLayerIndex((prev) => {
-          const nextId = prev - 1;
-          if (nextId < -1) {
-            return prev;
+          let nextId: number = prev - 1;
+          while (nextId - 1 >= 0 && (layers[nextId].isPinned || layers[nextId].isHidden)) {
+            nextId--;
+          }
+          if (nextId < 0) {
+            nextId = -1;
           }
           return nextId;
         });
