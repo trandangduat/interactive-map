@@ -15,7 +15,7 @@ interface MapProps {
 }
 
 const defaults = {
-    zoom: 19,
+    zoom: 16,
 }
 
 function DrawingLayer() {
@@ -64,16 +64,17 @@ function DrawingLayer() {
 
 export default function Map (Map: MapProps) {
     const { zoom = defaults.zoom, posix } = Map;
-    const { layers, currentLayerIndex, isPresenting } = useContext(SlideContext);
+    const { layers, currentLayerIndex, isPresenting, drawingStates } = useContext(SlideContext);
 
     return (
         <MapContainer
+            key={drawingStates.isDrawing ? "drawing" : "view"} // Key to force re-render when drawing state changes
             center={posix}
             zoom={zoom}
             style={{ height: "100%", width: "100%" }}
             keyboard={false}
-            className="cursor-crosshair"
-            dragging={false}
+            className={drawingStates.isDrawing ? "cursor-crosshair" : ""}
+            dragging={drawingStates.isDrawing ? false : true}
         >
             <DrawingLayer />
             <TileLayer

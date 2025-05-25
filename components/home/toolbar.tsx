@@ -2,6 +2,7 @@ import { useContext } from "react";
 import { Button } from "../ui/button";
 import { RectLayer, SlideContext } from "@/app/page";
 import { v4 as uuidv4 } from "uuid";
+import { Check } from "lucide-react";
 
 const basicColors = [
   "#000000", // Black
@@ -50,11 +51,18 @@ export default function Toolbar() {
     layers,
     setLayers,
     latLng,
+    drawingStates,
     setIsPresenting,
     setCurrentLayerIndex,
+    setDrawingStates,
   } = useContext(SlideContext);
 
   const handleRect = () => {
+    setDrawingStates(prev => ({
+      ...prev,
+      isDrawing: true,
+      drawingMode: 0,
+    }));
     const newLayer: RectLayer = {
       type: "rectangle",
       order: layers.length,
@@ -72,22 +80,58 @@ export default function Toolbar() {
   };
 
   const handleCircle = () => {
+    setDrawingStates(prev => ({
+      ...prev,
+      isDrawing: true,
+      drawingMode: 1,
+    }));
   };
 
   const handleArrow = () => {
+    setDrawingStates(prev => ({
+      ...prev,
+      isDrawing: true,
+      drawingMode: 2,
+    }));
+  };
+
+  const handleHand = () => {
+    setDrawingStates(prev => ({
+      ...prev,
+      isDrawing: false,
+      drawingMode: -1, // Toggle drawing mode
+    }));
   };
 
   const handlePresent = () => {
     setIsPresenting(true);
     setCurrentLayerIndex(-1);
+    setDrawingStates(prev => ({
+      ...prev,
+      isDrawing: false,
+      drawingMode: -1,
+    }));
     document.documentElement.requestFullscreen();
   };
 
   return (
-    <div className="mx-auto p-4 z-10 h-fit bg-slate-600 border-1 flex flex-row items-center gap-2">
-      <Button onClick={handleRect}>Rectangle</Button>
-      <Button onClick={handleCircle}>Circle</Button>
-      <Button onClick={handleArrow}>Arrow</Button>
+    <div className="mx-auto p-4 z-10 w-full h-fit bg-slate-600 border-1 flex flex-row items-center gap-2">
+      <Button onClick={handleHand}>
+        {!drawingStates.isDrawing ? <Check /> : ""}
+        Hand
+      </Button>
+      <Button onClick={handleRect}>
+        {drawingStates.isDrawing && drawingStates.drawingMode === 0 ? <Check /> : ""}
+        Rectangle
+      </Button>
+      <Button onClick={handleCircle}>
+        {drawingStates.isDrawing && drawingStates.drawingMode === 1 ? <Check /> : ""}
+        Circle
+      </Button>
+      <Button onClick={handleArrow}>
+        {drawingStates.isDrawing && drawingStates.drawingMode === 2 ? <Check /> : ""}
+        Arrow
+      </Button>
       <Button onClick={handlePresent}>Present</Button>
       <ColorPicker />
     </div>
