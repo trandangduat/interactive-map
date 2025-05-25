@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { LatLngBoundsExpression, PathOptions } from "leaflet";
 import { Eye, EyeOff, Lock, LockKeyhole, LockKeyholeOpen, Pin, PinOff, Square } from "lucide-react";
 import dynamic from "next/dynamic";
-import { createContext, JSX, useEffect, useState } from "react";
+import { createContext, JSX, useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 const LazyMap = dynamic(() => import("@/components/home/map"), {
@@ -44,25 +44,33 @@ export type Layer = RectLayer | CircleLayer | ArrowLayer
 
 type SlideContextProps = {
   layers: Layer[],
-  setLayers: (layers: Layer[]) => void,
   latLng: [number, number],
-  setLatLng: (latLng: [number, number]) => void,
   currentLayerIndex: number,
   isPresenting: boolean,
+  isDrawing?: boolean,
+  drawingMode?: number,
 };
 
 export const SlideContext = createContext<SlideContextProps>({
   layers: [],
-  setLayers: () => { },
   latLng: [21.03, 105.804],
-  setLatLng: () => { },
   currentLayerIndex: -1,
   isPresenting: false,
+  isDrawing: false,
+  drawingMode: -1,
 });
 
 export default function Home() {
   const [layers, setLayers] = useState<Layer[]>([]);
   const [latLng, setLatLng] = useState<[number, number]>([21.03, 105.804]);
+  const [isDrawing, setIsDrawing] = useState<boolean>(false);
+  /* drawingMode:
+    -1: not drawing
+    0: rectangle
+    1: circle
+    2: arrow
+  */
+  const [drawingMode, setDrawingMode] = useState<number>(-1);
   const [isPresenting, setIsPresenting] = useState<boolean>(false);
   const [currentLayerIndex, setCurrentLayerIndex] = useState<number>(-1);
 
@@ -166,12 +174,12 @@ export default function Home() {
     return () => {
       document.removeEventListener("keydown", handleNextPresentingLayer);
     };
-  }, [isPresenting])
+  }, [isPresenting, layers]);
 
   return (
     <>
-      <SlideContext.Provider value={{ layers, setLayers, latLng, setLatLng, currentLayerIndex, isPresenting }}>
-        <div className="flex flex-row w-7xl mx-auto">
+      <SlideContext.Provider value={{ layers, latLng, currentLayerIndex, isPresenting, isDrawing, drawingMode }}>
+        <div className="flex flex-row mx-auto">
           <div className="flex flex-col flex-1">
             <div className="mx-auto p-4 z-10 h-fit bg-slate-600 border-1 w-xl flex flex-row gap-2">
               <Button onClick={handleRect}>Rectangle</Button>
