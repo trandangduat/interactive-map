@@ -41,16 +41,24 @@ export interface ArrowLayer extends BaseLayer {
 
 export type Layer = RectLayer | CircleLayer | ArrowLayer
 
+export type DrawingStates = {
+  isDrawing: boolean,
+  drawingMode: number, // -1: not drawing, 0: rectangle, 1: circle, 2: arrow
+  strokeColor?: string,
+  fillColor?: string,
+  fillOpacity?: number,
+};
+
 type SlideContextProps = {
   layers: Layer[],
   latLng: [number, number],
   currentLayerIndex: number,
   isPresenting: boolean,
-  isDrawing?: boolean,
-  drawingMode?: number,
+  drawingStates: DrawingStates,
   setLayers: Dispatch<SetStateAction<Layer[]>>,
   setIsPresenting: Dispatch<SetStateAction<boolean>>,
   setCurrentLayerIndex: Dispatch<SetStateAction<number>>,
+  setDrawingStates: Dispatch<SetStateAction<DrawingStates>>,
 };
 
 export const SlideContext = createContext<SlideContextProps>({
@@ -58,24 +66,29 @@ export const SlideContext = createContext<SlideContextProps>({
   latLng: [21.03, 105.804],
   currentLayerIndex: -1,
   isPresenting: false,
-  isDrawing: false,
-  drawingMode: -1,
+  drawingStates: {
+    isDrawing: false,
+    drawingMode: -1,
+    strokeColor: "#000000",
+    fillColor: "#000000",
+    fillOpacity: 0.5,
+  },
   setLayers: () => {},
   setIsPresenting: () => {},
   setCurrentLayerIndex: () => {},
+  setDrawingStates: () => {},
 });
 
 export default function Home() {
   const [layers, setLayers] = useState<Layer[]>([]);
   const [latLng, setLatLng] = useState<[number, number]>([21.03, 105.804]);
-  const [isDrawing, setIsDrawing] = useState<boolean>(false);
-  /* drawingMode:
-    -1: not drawing
-    0: rectangle
-    1: circle
-    2: arrow
-  */
-  const [drawingMode, setDrawingMode] = useState<number>(-1);
+  const [drawingStates, setDrawingStates] = useState<DrawingStates>({
+    isDrawing: false,
+    drawingMode: -1,
+    strokeColor: "#000000",
+    fillColor: "#000000",
+    fillOpacity: 0.5,
+  });
   const [isPresenting, setIsPresenting] = useState<boolean>(false);
   const [currentLayerIndex, setCurrentLayerIndex] = useState<number>(-1);
 
@@ -137,11 +150,11 @@ export default function Home() {
         latLng,
         currentLayerIndex,
         isPresenting,
-        isDrawing,
-        drawingMode,
+        drawingStates,
         setLayers,
         setIsPresenting,
         setCurrentLayerIndex,
+        setDrawingStates
       }}>
         <div className="flex flex-row mx-auto">
           <div className="flex flex-col flex-1">

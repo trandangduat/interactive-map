@@ -22,6 +22,8 @@ function DrawingLayer() {
     const [isMouseDown, setIsMouseDown] = useState<boolean>(false);
     const [rectOrgin, setRectOrigin] = useState<LatLngTuple | null>();
     const [rectBounds, setRectBounds] = useState<LatLngBoundsExpression | null>();
+    const { drawingStates } = useContext(SlideContext);
+
     const map = useMapEvents({
         mousedown: (e) => {
             console.log(e.latlng);
@@ -51,10 +53,10 @@ function DrawingLayer() {
         <Rectangle
             bounds={rectBounds}
             pathOptions={{
-                color: 'blue',
+                color: drawingStates.strokeColor || 'blue',
                 weight: 2,
-                fillColor: 'blue',
-                fillOpacity: 0.2,
+                fillColor: drawingStates.fillColor || 'blue',
+                fillOpacity: drawingStates.fillOpacity || 0.5,
             }}
         />
     );
@@ -62,7 +64,7 @@ function DrawingLayer() {
 
 export default function Map (Map: MapProps) {
     const { zoom = defaults.zoom, posix } = Map;
-    const { layers, currentLayerIndex, isPresenting, isDrawing, drawingMode } = useContext(SlideContext);
+    const { layers, currentLayerIndex, isPresenting } = useContext(SlideContext);
 
     return (
         <MapContainer
