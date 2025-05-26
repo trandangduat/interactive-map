@@ -1,6 +1,6 @@
 import { SlideContext } from "@/app/page";
 import { cn } from "@/lib/utils";
-import { Eye, EyeOff, Pin, PinOff, Square } from "lucide-react";
+import { Eye, EyeOff, Pin, PinOff, Square, Trash, Trash2 } from "lucide-react";
 import { JSX, useContext } from "react";
 
 export default function LayerSidebar() {
@@ -28,6 +28,17 @@ export default function LayerSidebar() {
         isHidden: !newLayers[index].isHidden,
       };
       return newLayers;
+    });
+  };
+
+  const removeLayer = (index: number) => {
+    setLayers(prevLayers => {
+      const newLayers = [...prevLayers];
+      newLayers.splice(index, 1);
+      return newLayers.map((layer, i) => ({
+        ...layer,
+        order: i,
+      }));
     });
   };
 
@@ -65,6 +76,9 @@ export default function LayerSidebar() {
                 ) : (
                   <Eye size={16} />
                 )}
+              </div>
+              <div className="cursor-pointer" onClick={() => removeLayer(index)}>
+                <Trash2 size={16} />
               </div>
             </div>
           </div>
