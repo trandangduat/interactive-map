@@ -88,6 +88,8 @@ function DrawingLayer() {
 
 function InspectingLayer() {
     const { inspectingLayerId, layers } = useContext(SlideContext);
+    const map = useMap();
+
     if (!inspectingLayerId) {
         return null;
     }
@@ -98,17 +100,52 @@ function InspectingLayer() {
 
     switch (layer.type) {
         case "rectangle":
-            const paddedBounds = layer.bounds;
+            const layerBounds = layer.bounds as [LatLngTuple, LatLngTuple];
+            const area = map.distance(
+                layerBounds[0],
+                [layerBounds[0][0], layerBounds[1][1]]
+            ) * map.distance(
+                layerBounds[0],
+                [layerBounds[1][0], layerBounds[0][1]]
+            );
+            const paddedBounds: [LatLngTuple, LatLngTuple] = [
+                [
+                    layerBounds[0][0] - 0.0001,
+                    layerBounds[0][1] - 0.0001
+                ],
+                [
+                    layerBounds[1][0] + 0.0001,
+                    layerBounds[1][1] + 0.0001
+                ]
+            ];
             return (
-                <Rectangle
-                    key={layer.uuid}
-                    bounds={paddedBounds}
-                    pathOptions={{
-                        color: 'lightgreen',
-                        weight: 2,
-                        fillColor: 'transparent',
-                    }}
-                />
+                <>
+                    <Rectangle
+                        key={layer.uuid}
+                        bounds={layerBounds}
+                        pathOptions={{
+                            color: 'lightgreen',
+                            weight: 2,
+                            fillColor: 'transparent',
+                        }}
+                    >
+                        <SVGOverlay bounds={layerBounds}>
+                            <text
+                                x="50%"
+                                y="50%"
+                                dominantBaseline="middle"
+                                textAnchor="middle"
+                                fill="none"
+                                stroke="white"
+                                strokeWidth="1"
+                            >
+                                <tspan fontSize="30" fontWeight={"bold"} fill="black">
+                                    {area.toFixed(0)} m²
+                                </tspan>
+                            </text>
+                        </SVGOverlay>
+                    </Rectangle>
+                </>
             );
         break;
 
