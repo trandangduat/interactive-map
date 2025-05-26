@@ -7,6 +7,8 @@ export default function LayerSidebar() {
   const {
     layers,
     setLayers,
+    inspectingLayerIndex,
+    setInspectingLayerIndex,
   } = useContext(SlideContext);
 
   const toggleLockLayer = (index: number) => {
@@ -43,7 +45,7 @@ export default function LayerSidebar() {
   };
 
   return (
-    <div className="bg-slate-600 text-white border-1 w-64">
+    <div className="bg-slate-600 text-white border-1 w-80">
       <p className="text-white text-2xl m-2">Layers</p>
       {layers.map((layer, index) => {
         let layerIcon: JSX.Element;
@@ -53,11 +55,15 @@ export default function LayerSidebar() {
             break;
         }
         return (
-          <div
+          <button
             key={layer.uuid}
-            className={cn("flex flex-row justify-between items-center p-2 m-2 gap-2 bg-slate-700 rounded-md",
-              layer.isPinned && "bg-slate-800"
-            )}>
+            className={cn(
+              "flex flex-row justify-between items-center w-full p-2 m-2 gap-2 border-2 border-transparent bg-slate-700 rounded-md hover:bg-slate-800 cursor-pointer",
+              layer.isPinned && "bg-slate-800",
+              inspectingLayerIndex === index && "border-white/60",
+            )}
+            onClick={() => setInspectingLayerIndex(index)}
+          >
             <div className="flex flex-row items-center gap-2">
               {layerIcon!}
               {layer.order + " " + layer.type}
@@ -81,7 +87,7 @@ export default function LayerSidebar() {
                 <Trash2 size={16} />
               </div>
             </div>
-          </div>
+          </button>
         );
       })}
     </div>

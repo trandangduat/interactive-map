@@ -5,7 +5,7 @@ import "leaflet/dist/leaflet.css";
 // import "leaflet-defaulticon-compatibility";
 
 import { MapContainer, TileLayer, Marker, Popup, Rectangle, SVGOverlay, useMapEvents, useMap } from "react-leaflet";
-import { LatLngBoundsExpression, LatLngExpression, LatLngTuple } from 'leaflet';
+import { bounds, LatLngBoundsExpression, LatLngExpression, LatLngTuple } from 'leaflet';
 import { useContext, useEffect, useState } from "react";
 import { Layer, SlideContext } from "@/app/page";
 import { v4 as uuidv4 } from "uuid";
@@ -14,7 +14,7 @@ function DrawingLayer() {
     const [isMouseDown, setIsMouseDown] = useState<boolean>(false);
     const [rectOrgin, setRectOrigin] = useState<LatLngTuple | null>();
     const [rectBounds, setRectBounds] = useState<LatLngBoundsExpression | null>();
-    const { layers, setLayers, drawingStates } = useContext(SlideContext);
+    const { layers, setLayers, drawingStates, setInspectingLayerIndex } = useContext(SlideContext);
 
     const map = useMapEvents({
         mousedown: (e) => {
@@ -54,6 +54,7 @@ function DrawingLayer() {
                     default:
                         return; // No valid drawing mode selected
                 }
+                setInspectingLayerIndex(layers.length);
                 setLayers((prevLayers) => [...prevLayers, newLayer]);
                 setIsMouseDown(false);
                 setRectBounds(null);
@@ -83,6 +84,29 @@ function DrawingLayer() {
             }}
         />
     );
+}
+
+function InspectingLayer() {
+    const { inspectingLayerIndex: inspectId, layers } = useContext(SlideContext);
+    if (inspectId < 0) {
+        return null; // No layer to inspect
+    }
+
+    const layer = layers[inspectId];
+    if (layer.type === "rectangle") {
+        const paddedBounds = layer.bounds; // todo: add padding
+        return (
+            <Rectangle
+                key={inspectId}
+                bounds={paddedBounds}
+                pathOptions={{
+                    color: 'lightgreen',
+                    weight: 2,
+                    fillColor: 'transparent',
+                }}
+            />
+        );
+    }
 }
 
 export default function Map() {
@@ -125,6 +149,7 @@ export default function Map() {
                     )
                 }
             })}
+            <InspectingLayer />
         </MapContainer>
     )
 }

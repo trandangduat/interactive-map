@@ -56,12 +56,14 @@ type SlideContextProps = {
   isPresenting: boolean,
   drawingStates: DrawingStates,
   mapZoom: number,
+  inspectingLayerIndex: number,
   setLayers: Dispatch<SetStateAction<Layer[]>>,
   setLatLng: Dispatch<SetStateAction<[number, number]>>,
   setIsPresenting: Dispatch<SetStateAction<boolean>>,
   setCurrentLayerIndex: Dispatch<SetStateAction<number>>,
   setDrawingStates: Dispatch<SetStateAction<DrawingStates>>,
   setMapZoom: Dispatch<SetStateAction<number>>,
+  setInspectingLayerIndex: Dispatch<SetStateAction<number>>,
 };
 
 export const SlideContext = createContext<SlideContextProps>({
@@ -77,12 +79,14 @@ export const SlideContext = createContext<SlideContextProps>({
     fillOpacity: 0.5,
   },
   mapZoom: 16,
+  inspectingLayerIndex: -1,
   setLayers: () => {},
   setLatLng: () => {},
   setIsPresenting: () => {},
   setCurrentLayerIndex: () => {},
   setDrawingStates: () => {},
   setMapZoom: () => {},
+  setInspectingLayerIndex: () => {},
 });
 
 export default function Home() {
@@ -98,6 +102,7 @@ export default function Home() {
   });
   const [isPresenting, setIsPresenting] = useState<boolean>(false);
   const [currentLayerIndex, setCurrentLayerIndex] = useState<number>(-1);
+  const [inspectingLayerIndex, setInspectingLayerIndex] = useState<number>(-1);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -159,12 +164,14 @@ export default function Home() {
         isPresenting,
         drawingStates,
         mapZoom,
+        inspectingLayerIndex,
         setLayers,
         setLatLng,
         setIsPresenting,
         setCurrentLayerIndex,
         setDrawingStates,
         setMapZoom,
+        setInspectingLayerIndex,
       }}>
         <div className="flex flex-row mx-auto">
           <div className="flex flex-col flex-1">

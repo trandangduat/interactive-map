@@ -51,6 +51,7 @@ export default function Toolbar() {
     setIsPresenting,
     setCurrentLayerIndex,
     setDrawingStates,
+    setInspectingLayerIndex
   } = useContext(SlideContext);
 
   const handleRect = () => {
@@ -83,6 +84,7 @@ export default function Toolbar() {
       isDrawing: false,
       drawingMode: -1, // Toggle drawing mode
     }));
+    setInspectingLayerIndex(-1);
   };
 
   const handlePresent = () => {
