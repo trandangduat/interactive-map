@@ -76,7 +76,7 @@ export const SlideContext = createContext<SlideContextProps>({
     drawingMode: -1,
     strokeColor: "#000000",
     fillColor: "#000000",
-    fillOpacity: 0.5,
+    fillOpacity: 0.2,
   },
   mapZoom: 16,
   inspectingLayerId: null,
@@ -98,7 +98,7 @@ export default function Home() {
     drawingMode: -1,
     strokeColor: "#000000",
     fillColor: "#000000",
-    fillOpacity: 0.5,
+    fillOpacity: 0.2,
   });
   const [isPresenting, setIsPresenting] = useState<boolean>(false);
   const [currentLayerIndex, setCurrentLayerIndex] = useState<number>(-1);
