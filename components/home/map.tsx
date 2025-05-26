@@ -4,19 +4,10 @@ import "leaflet/dist/leaflet.css";
 // import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.webpack.css";
 // import "leaflet-defaulticon-compatibility";
 
-import { MapContainer, TileLayer, Marker, Popup, Rectangle, SVGOverlay, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Rectangle, SVGOverlay, useMapEvents, useMap } from "react-leaflet";
 import { LatLngBoundsExpression, LatLngExpression, LatLngTuple } from 'leaflet';
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { SlideContext } from "@/app/page";
-
-interface MapProps {
-    posix: LatLngExpression | LatLngTuple,
-    zoom?: number,
-}
-
-const defaults = {
-    zoom: 16,
-}
 
 function DrawingLayer() {
     const [isMouseDown, setIsMouseDown] = useState<boolean>(false);
@@ -26,24 +17,30 @@ function DrawingLayer() {
 
     const map = useMapEvents({
         mousedown: (e) => {
-            console.log(e.latlng);
-            setIsMouseDown(true);
-            setRectOrigin([e.latlng.lat, e.latlng.lng]);
+            if (drawingStates.isDrawing) {
+                setIsMouseDown(true);
+                setRectOrigin([e.latlng.lat, e.latlng.lng]);
+            }
         },
         mousemove: (e) => {
             if (isMouseDown && rectOrgin) {
-                console.log("Mouse is moving", e.latlng);
-                console.log("Rect origin", rectOrgin);
                 setRectBounds([rectOrgin, [e.latlng.lat, e.latlng.lng]]);
             }
         },
         mouseup: (e) => {
-            console.log("Mouse is up", e.latlng);
-            setIsMouseDown(false);
-            setRectBounds(null);
-            setRectOrigin(null);
+            if (isMouseDown) {
+                setIsMouseDown(false);
+                setRectBounds(null);
+                setRectOrigin(null);
+            }
         },
     });
+
+    if (drawingStates.isDrawing) {
+        map.dragging.disable();
+    } else {
+        map.dragging.enable();
+    }
 
     if (!isMouseDown || !rectOrgin || !rectBounds) {
         return null;
@@ -62,19 +59,23 @@ function DrawingLayer() {
     );
 }
 
-export default function Map (Map: MapProps) {
-    const { zoom = defaults.zoom, posix } = Map;
-    const { layers, currentLayerIndex, isPresenting, drawingStates } = useContext(SlideContext);
+export default function Map() {
+    const {
+        layers,
+        currentLayerIndex,
+        isPresenting,
+        drawingStates,
+        latLng,
+        mapZoom,
+    } = useContext(SlideContext);
 
     return (
         <MapContainer
-            key={drawingStates.isDrawing ? "drawing" : "view"} // Key to force re-render when drawing state changes
-            center={posix}
-            zoom={zoom}
+            // key={drawingStates.isDrawing ? "drawing" : "view"} // Key to force re-render when drawing state changes
+            center={latLng}
+            zoom={mapZoom}
             style={{ height: "100%", width: "100%" }}
             keyboard={false}
-            className={drawingStates.isDrawing ? "cursor-crosshair" : ""}
-            dragging={drawingStates.isDrawing ? false : true}
         >
             <DrawingLayer />
             <TileLayer

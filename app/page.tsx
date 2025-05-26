@@ -55,10 +55,13 @@ type SlideContextProps = {
   currentLayerIndex: number,
   isPresenting: boolean,
   drawingStates: DrawingStates,
+  mapZoom: number,
   setLayers: Dispatch<SetStateAction<Layer[]>>,
+  setLatLng: Dispatch<SetStateAction<[number, number]>>,
   setIsPresenting: Dispatch<SetStateAction<boolean>>,
   setCurrentLayerIndex: Dispatch<SetStateAction<number>>,
   setDrawingStates: Dispatch<SetStateAction<DrawingStates>>,
+  setMapZoom: Dispatch<SetStateAction<number>>,
 };
 
 export const SlideContext = createContext<SlideContextProps>({
@@ -73,15 +76,19 @@ export const SlideContext = createContext<SlideContextProps>({
     fillColor: "#000000",
     fillOpacity: 0.5,
   },
+  mapZoom: 16,
   setLayers: () => {},
+  setLatLng: () => {},
   setIsPresenting: () => {},
   setCurrentLayerIndex: () => {},
   setDrawingStates: () => {},
+  setMapZoom: () => {},
 });
 
 export default function Home() {
   const [layers, setLayers] = useState<Layer[]>([]);
   const [latLng, setLatLng] = useState<[number, number]>([21.03, 105.804]);
+  const [mapZoom, setMapZoom] = useState<number>(16); // Default zoom level
   const [drawingStates, setDrawingStates] = useState<DrawingStates>({
     isDrawing: false,
     drawingMode: -1,
@@ -151,16 +158,19 @@ export default function Home() {
         currentLayerIndex,
         isPresenting,
         drawingStates,
+        mapZoom,
         setLayers,
+        setLatLng,
         setIsPresenting,
         setCurrentLayerIndex,
-        setDrawingStates
+        setDrawingStates,
+        setMapZoom,
       }}>
         <div className="flex flex-row mx-auto">
           <div className="flex flex-col flex-1">
             <Toolbar />
             <div className={cn("mx-auto w-full h-dvh z-1", isPresenting ? "fixed top-0 left-0 z-20" : "relative")}>
-              <LazyMap posix={latLng} />
+              <LazyMap />
             </div>
           </div>
           <LayerSidebar />
