@@ -7,11 +7,12 @@ export default function LayerSidebar() {
   const {
     layers,
     setLayers,
-    inspectingLayerIndex,
-    setInspectingLayerIndex,
+    inspectingLayerId,
+    setInspectingLayerId,
   } = useContext(SlideContext);
 
-  const toggleLockLayer = (index: number) => {
+  const toggleLockLayer = (e: React.MouseEvent<HTMLDivElement, MouseEvent>, index: number) => {
+    e.stopPropagation(); // Prevent the click from propagating to the button's onClick
     setLayers(prevLayers => {
       const newLayers = [...prevLayers];
       newLayers[index] = {
@@ -22,7 +23,8 @@ export default function LayerSidebar() {
     });
   };
 
-  const toggleHideLayer = (index: number) => {
+  const toggleHideLayer = (e: React.MouseEvent<HTMLDivElement, MouseEvent>, index: number) => {
+    e.stopPropagation();
     setLayers(prevLayers => {
       const newLayers = [...prevLayers];
       newLayers[index] = {
@@ -33,7 +35,8 @@ export default function LayerSidebar() {
     });
   };
 
-  const removeLayer = (index: number) => {
+  const removeLayer = (e: React.MouseEvent<HTMLDivElement, MouseEvent>, index: number) => {
+    e.stopPropagation();
     setLayers(prevLayers => {
       const newLayers = [...prevLayers];
       newLayers.splice(index, 1);
@@ -58,32 +61,31 @@ export default function LayerSidebar() {
           <button
             key={layer.uuid}
             className={cn(
-              "flex flex-row justify-between items-center w-full p-2 m-2 gap-2 border-2 border-transparent bg-slate-700 rounded-md hover:bg-slate-800 cursor-pointer",
-              layer.isPinned && "bg-slate-800",
-              inspectingLayerIndex === index && "border-white/60",
+              "flex flex-row justify-between items-center p-3 border-b-1 border-slate-500 w-full bg-slate-700 hover:bg-slate-800 cursor-pointer",
+              inspectingLayerId === layer.uuid && "bg-slate-800",
             )}
-            onClick={() => setInspectingLayerIndex(index)}
+            onClick={() => setInspectingLayerId(layer.uuid)}
           >
             <div className="flex flex-row items-center gap-2">
               {layerIcon!}
               {layer.order + " " + layer.type}
             </div>
             <div className="flex flex-row items-center gap-2">
-              <div className="cursor-pointer" onClick={() => toggleLockLayer(index)}>
+              <div className="cursor-pointer" onClick={(e) => toggleLockLayer(e, index)}>
                 {layer.isPinned ? (
                   <PinOff size={16} />
                 ) : (
                   <Pin size={16} />
                 )}
               </div>
-              <div className="cursor-pointer" onClick={() => toggleHideLayer(index)}>
+              <div className="cursor-pointer" onClick={(e) => toggleHideLayer(e, index)}>
                 {layer.isHidden ? (
                   <EyeOff size={16} />
                 ) : (
                   <Eye size={16} />
                 )}
               </div>
-              <div className="cursor-pointer" onClick={() => removeLayer(index)}>
+              <div className="cursor-pointer" onClick={(e) => removeLayer(e, index)}>
                 <Trash2 size={16} />
               </div>
             </div>

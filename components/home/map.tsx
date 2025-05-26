@@ -14,7 +14,7 @@ function DrawingLayer() {
     const [isMouseDown, setIsMouseDown] = useState<boolean>(false);
     const [rectOrgin, setRectOrigin] = useState<LatLngTuple | null>();
     const [rectBounds, setRectBounds] = useState<LatLngBoundsExpression | null>();
-    const { layers, setLayers, drawingStates, setInspectingLayerIndex } = useContext(SlideContext);
+    const { layers, setLayers, drawingStates, setInspectingLayerId } = useContext(SlideContext);
 
     const map = useMapEvents({
         mousedown: (e) => {
@@ -46,6 +46,7 @@ function DrawingLayer() {
                                 fillOpacity: drawingStates.fillOpacity || 0.5,
                             },
                         };
+                        setInspectingLayerId(newLayer.uuid);
                         break;
                     case 1: // Circle
                         break;
@@ -54,7 +55,6 @@ function DrawingLayer() {
                     default:
                         return; // No valid drawing mode selected
                 }
-                setInspectingLayerIndex(layers.length);
                 setLayers((prevLayers) => [...prevLayers, newLayer]);
                 setIsMouseDown(false);
                 setRectBounds(null);
@@ -87,25 +87,41 @@ function DrawingLayer() {
 }
 
 function InspectingLayer() {
-    const { inspectingLayerIndex: inspectId, layers } = useContext(SlideContext);
-    if (inspectId < 0) {
-        return null; // No layer to inspect
+    const { inspectingLayerId, layers } = useContext(SlideContext);
+    if (!inspectingLayerId) {
+        return null;
+    }
+    const layer = layers.find(l => l.uuid === inspectingLayerId);
+    if (!layer) {
+        return null;
     }
 
-    const layer = layers[inspectId];
-    if (layer.type === "rectangle") {
-        const paddedBounds = layer.bounds; // todo: add padding
-        return (
-            <Rectangle
-                key={inspectId}
-                bounds={paddedBounds}
-                pathOptions={{
-                    color: 'lightgreen',
-                    weight: 2,
-                    fillColor: 'transparent',
-                }}
-            />
-        );
+    switch (layer.type) {
+        case "rectangle":
+            const paddedBounds = layer.bounds;
+            return (
+                <Rectangle
+                    key={layer.uuid}
+                    bounds={paddedBounds}
+                    pathOptions={{
+                        color: 'lightgreen',
+                        weight: 2,
+                        fillColor: 'transparent',
+                    }}
+                />
+            );
+        break;
+
+        case "circle":
+            // Handle circle layer inspection
+            break;
+
+        case "arrow":
+            // Handle arrow layer inspection
+            break;
+
+        default:
+            return null;
     }
 }
 
@@ -114,7 +130,6 @@ export default function Map() {
         layers,
         currentLayerIndex,
         isPresenting,
-        drawingStates,
         latLng,
         mapZoom,
     } = useContext(SlideContext);

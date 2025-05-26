@@ -56,14 +56,14 @@ type SlideContextProps = {
   isPresenting: boolean,
   drawingStates: DrawingStates,
   mapZoom: number,
-  inspectingLayerIndex: number,
+  inspectingLayerId: string | null,
   setLayers: Dispatch<SetStateAction<Layer[]>>,
   setLatLng: Dispatch<SetStateAction<[number, number]>>,
   setIsPresenting: Dispatch<SetStateAction<boolean>>,
   setCurrentLayerIndex: Dispatch<SetStateAction<number>>,
   setDrawingStates: Dispatch<SetStateAction<DrawingStates>>,
   setMapZoom: Dispatch<SetStateAction<number>>,
-  setInspectingLayerIndex: Dispatch<SetStateAction<number>>,
+  setInspectingLayerId: Dispatch<SetStateAction<string | null>>,
 };
 
 export const SlideContext = createContext<SlideContextProps>({
@@ -79,14 +79,14 @@ export const SlideContext = createContext<SlideContextProps>({
     fillOpacity: 0.5,
   },
   mapZoom: 16,
-  inspectingLayerIndex: -1,
+  inspectingLayerId: null,
   setLayers: () => {},
   setLatLng: () => {},
   setIsPresenting: () => {},
   setCurrentLayerIndex: () => {},
   setDrawingStates: () => {},
   setMapZoom: () => {},
-  setInspectingLayerIndex: () => {},
+  setInspectingLayerId: () => {},
 });
 
 export default function Home() {
@@ -102,7 +102,7 @@ export default function Home() {
   });
   const [isPresenting, setIsPresenting] = useState<boolean>(false);
   const [currentLayerIndex, setCurrentLayerIndex] = useState<number>(-1);
-  const [inspectingLayerIndex, setInspectingLayerIndex] = useState<number>(-1);
+  const [inspectingLayerId, setInspectingLayerId] = useState<string | null>(null);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -164,14 +164,14 @@ export default function Home() {
         isPresenting,
         drawingStates,
         mapZoom,
-        inspectingLayerIndex,
+        inspectingLayerId,
         setLayers,
         setLatLng,
         setIsPresenting,
         setCurrentLayerIndex,
         setDrawingStates,
         setMapZoom,
-        setInspectingLayerIndex,
+        setInspectingLayerId,
       }}>
         <div className="flex flex-row mx-auto">
           <div className="flex flex-col flex-1">
