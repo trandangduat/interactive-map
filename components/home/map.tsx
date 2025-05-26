@@ -7,13 +7,14 @@ import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, Marker, Popup, Rectangle, SVGOverlay, useMapEvents, useMap } from "react-leaflet";
 import { LatLngBoundsExpression, LatLngExpression, LatLngTuple } from 'leaflet';
 import { useContext, useEffect, useState } from "react";
-import { SlideContext } from "@/app/page";
+import { Layer, SlideContext } from "@/app/page";
+import { v4 as uuidv4 } from "uuid";
 
 function DrawingLayer() {
     const [isMouseDown, setIsMouseDown] = useState<boolean>(false);
     const [rectOrgin, setRectOrigin] = useState<LatLngTuple | null>();
     const [rectBounds, setRectBounds] = useState<LatLngBoundsExpression | null>();
-    const { drawingStates } = useContext(SlideContext);
+    const { layers, setLayers, drawingStates } = useContext(SlideContext);
 
     const map = useMapEvents({
         mousedown: (e) => {
@@ -28,7 +29,32 @@ function DrawingLayer() {
             }
         },
         mouseup: (e) => {
-            if (isMouseDown) {
+            if (isMouseDown && rectOrgin && rectBounds) {
+                let newLayer: Layer;
+                switch (drawingStates.drawingMode) {
+                    case 0: // Rectangle
+                        newLayer = {
+                            type: "rectangle",
+                            order: layers.length,
+                            uuid: uuidv4(),
+                            isPinned: false,
+                            isHidden: false,
+                            bounds: [rectOrgin, [e.latlng.lat, e.latlng.lng]],
+                            pathOptions: {
+                                color: drawingStates.strokeColor || 'blue',
+                                fillColor: drawingStates.fillColor || 'blue',
+                                fillOpacity: drawingStates.fillOpacity || 0.5,
+                            },
+                        };
+                        break;
+                    case 1: // Circle
+                        break;
+                    case 2: // Arrow
+                        break;
+                    default:
+                        return; // No valid drawing mode selected
+                }
+                setLayers((prevLayers) => [...prevLayers, newLayer]);
                 setIsMouseDown(false);
                 setRectBounds(null);
                 setRectOrigin(null);

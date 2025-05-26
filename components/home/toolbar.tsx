@@ -1,7 +1,6 @@
 import { useContext } from "react";
 import { Button } from "../ui/button";
 import { RectLayer, SlideContext } from "@/app/page";
-import { v4 as uuidv4 } from "uuid";
 import { Check } from "lucide-react";
 
 const basicColors = [
@@ -48,9 +47,6 @@ function ColorPicker() {
 
 export default function Toolbar() {
   const {
-    layers,
-    setLayers,
-    latLng,
     drawingStates,
     setIsPresenting,
     setCurrentLayerIndex,
@@ -63,20 +59,6 @@ export default function Toolbar() {
       isDrawing: true,
       drawingMode: 0,
     }));
-    const newLayer: RectLayer = {
-      type: "rectangle",
-      order: layers.length,
-      uuid: uuidv4(),
-      isPinned: false,
-      isHidden: false,
-      bounds: [[latLng[0] - Math.random() * 0.001, latLng[1] - Math.random() * 0.001], [latLng[0] + Math.random() * 0.001, latLng[1] + Math.random() * 0.001]],
-      pathOptions: {
-        color: "red",
-        fillColor: "red",
-        fillOpacity: 0.5,
-      },
-    };
-    setLayers([...layers, newLayer]);
   };
 
   const handleCircle = () => {
