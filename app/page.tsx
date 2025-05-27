@@ -3,6 +3,7 @@
 import LayerSidebar from "@/components/home/layer-sidebar";
 import Toolbar from "@/components/home/toolbar";
 import { cn } from "@/lib/utils";
+import { Layer } from "@/types/layer";
 import { LatLngBoundsExpression, PathOptions } from "leaflet";
 import dynamic from "next/dynamic";
 import { createContext, Dispatch, SetStateAction, useEffect, useState } from "react";
@@ -10,36 +11,6 @@ import { createContext, Dispatch, SetStateAction, useEffect, useState } from "re
 const LazyMap = dynamic(() => import("@/components/home/map"), {
   ssr: false,
 });
-
-export interface BaseLayer {
-  type: string,
-  uuid: string,
-  isPinned: boolean,
-  isHidden: boolean,
-  realLifeArea?: number, // Area in square meters
-}
-
-export interface RectLayer extends BaseLayer {
-  type: "rectangle"
-  bounds: LatLngBoundsExpression
-  pathOptions: PathOptions
-}
-
-export interface CircleLayer extends BaseLayer {
-  type: "circle"
-  center: LatLngBoundsExpression
-  radius: number
-  pathOptions: PathOptions
-}
-
-export interface ArrowLayer extends BaseLayer {
-  type: "arrow"
-  start: LatLngBoundsExpression
-  end: LatLngBoundsExpression
-  pathOptions: PathOptions
-}
-
-export type Layer = RectLayer | CircleLayer | ArrowLayer
 
 export type DrawingStates = {
   isDrawing: boolean,

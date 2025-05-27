@@ -1,7 +1,8 @@
-import { ArrowLayer, CircleLayer, Layer, RectLayer, SlideContext } from "@/app/page";
+import { ArrowLayer, CircleLayer, Layer, RectLayer } from "@/types/layer";
 import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronUp, Eye, EyeOff, Pin, PinOff, Square, Trash2 } from "lucide-react";
 import { JSX, useContext, useState } from "react";
+import { SlideContext } from "@/app/page";
 
 // Layer info display component
 function LayerInfoPanel({ layer, isSelected }: { layer: Layer, isSelected: boolean }) {

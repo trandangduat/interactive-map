@@ -7,8 +7,9 @@ import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, Marker, Popup, Rectangle, SVGOverlay, useMapEvents, useMap } from "react-leaflet";
 import L, { bounds, LatLngBoundsExpression, LatLngExpression, LatLngTuple, PointExpression } from 'leaflet';
 import { useContext, useEffect, useState } from "react";
-import { Layer, SlideContext } from "@/app/page";
+import { SlideContext } from "@/app/page";
 import { v4 as uuidv4 } from "uuid";
+import { Layer } from "@/types/layer";
 
 function DrawingLayer() {
     const [rectOrgin, setRectOrigin] = useState<LatLngTuple | null>();
