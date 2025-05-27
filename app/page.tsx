@@ -13,7 +13,6 @@ const LazyMap = dynamic(() => import("@/components/home/map"), {
 
 export interface BaseLayer {
   type: string,
-  order: number,
   uuid: string,
   isPinned: boolean,
   isHidden: boolean,

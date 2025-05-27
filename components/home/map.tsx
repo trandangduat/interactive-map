@@ -37,7 +37,6 @@ function DrawingLayer() {
                         ];
                         newLayer = {
                             type: "rectangle",
-                            order: layers.length,
                             uuid: uuidv4(),
                             isPinned: false,
                             isHidden: false,

@@ -7,14 +7,10 @@ import { JSX, useContext, useState } from "react";
 function LayerInfoPanel({ layer, isSelected }: { layer: Layer, isSelected: boolean }) {
   return (
     <div className={cn("p-3 bg-slate-700 text-sm rounded overflow-auto shadow m-0", isSelected && "bg-slate-800")}>
-      <div className="flex items-center justify-between mb-3 border-b border-slate-500 pb-2">
-        <h3 className="font-semibold text-base">Layer#{layer.order} details</h3>
-        <div className="px-2 py-0.5 bg-slate-600 rounded text-xs">{layer.type}</div>
-      </div>
       <div className="space-y-1">
         {layer.type === "rectangle" && (
           <>
-            <div className="mt-2">
+            <div className="">
               <p className="font-medium">Bounds:</p>
               <p className="pl-2 text-xs">{JSON.stringify((layer as RectLayer).bounds)}</p>
             </div>
@@ -83,6 +79,8 @@ export default function LayerSidebar() {
 
   // State to track which layers have expanded info panels
   const [expandedLayers, setExpandedLayers] = useState<Record<string, boolean>>({});
+  const [dragStartIndex, setDragStartIndex] = useState<number | null>(null);
+  const [draggedOverIndex, setDraggedOverIndex] = useState<number | null>(null);
 
   const toggleLayerInfo = (e: React.MouseEvent<HTMLDivElement, MouseEvent>, layerId: string) => {
     e.stopPropagation();
@@ -128,8 +126,26 @@ export default function LayerSidebar() {
     });
   };
 
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    setDragStartIndex(index);
+  };
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    e.preventDefault();
+    setDraggedOverIndex(index);
+  };
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    e.preventDefault();
+    setLayers(prevLayers => {
+      const newLayers = [...prevLayers];
+      [newLayers[dragStartIndex!], newLayers[index]] = [newLayers[index], newLayers[dragStartIndex!]]; // Swap the layers
+      return newLayers;
+    });
+    setDragStartIndex(null);
+    setDraggedOverIndex(null);
+  };
+
   return (
-    <div className="bg-slate-600 text-white border-1 w-80" onClick={() => setInspectingLayerId(null)}>
+    <div className="bg-slate-600 text-white border-1 w-90" onClick={() => setInspectingLayerId(null)}>
       <p className="text-white text-2xl m-2">Layers</p>
       {layers.map((layer, index) => {
         let layerIcon: JSX.Element;
@@ -143,7 +159,14 @@ export default function LayerSidebar() {
         const isSelected = inspectingLayerId === layer.uuid;
 
         return (
-          <div key={layer.uuid} className="border-b border-slate-500">
+          <div
+            key={layer.uuid}
+            className={cn("border-b border-slate-500", draggedOverIndex === index && "border-t-2 border-t-slate-300")}
+            draggable={true}
+            onDragStart={(e) => handleDragStart(e, index)}
+            onDragOver={(e) => handleDragOver(e, index)}
+            onDrop={(e) => handleDrop(e, index)}
+          >
             <button
               className={cn(
                 "flex flex-row justify-between items-center p-3 w-full bg-slate-700 cursor-pointer",
@@ -154,9 +177,9 @@ export default function LayerSidebar() {
                 setInspectingLayerId(layer.uuid);
               }}
             >
-              <div className="flex flex-row items-center gap-2">
+              <div className="flex flex-row items-center gap-2 text-sm">
                 {layerIcon!}
-                {layer.order + " " + layer.type}
+                {index + " " + layer.type + "_" + layer.uuid.slice(0,5)}
               </div>
               <div className="flex flex-row items-center gap-2">
                 <div
