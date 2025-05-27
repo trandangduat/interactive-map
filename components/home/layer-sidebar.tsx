@@ -138,7 +138,8 @@ export default function LayerSidebar() {
     e.preventDefault();
     setLayers(prevLayers => {
       const newLayers = [...prevLayers];
-      [newLayers[dragStartIndex!], newLayers[index]] = [newLayers[index], newLayers[dragStartIndex!]]; // Swap the layers
+      const reorderedLayer = newLayers.splice(dragStartIndex!, 1)[0];
+      newLayers.splice(index, 0, reorderedLayer);
       return newLayers;
     });
     setDragStartIndex(null);
