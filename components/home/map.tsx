@@ -11,7 +11,6 @@ import { Layer, SlideContext } from "@/app/page";
 import { v4 as uuidv4 } from "uuid";
 
 function DrawingLayer() {
-    const [isMouseDown, setIsMouseDown] = useState<boolean>(false);
     const [rectOrgin, setRectOrigin] = useState<LatLngTuple | null>();
     const [rectBounds, setRectBounds] = useState<LatLngBoundsExpression | null>();
     const { layers, setLayers, drawingStates, setInspectingLayerId } = useContext(SlideContext);
@@ -19,17 +18,16 @@ function DrawingLayer() {
     const map = useMapEvents({
         mousedown: (e) => {
             if (drawingStates.isDrawing) {
-                setIsMouseDown(true);
                 setRectOrigin([e.latlng.lat, e.latlng.lng]);
             }
         },
         mousemove: (e) => {
-            if (isMouseDown && rectOrgin) {
+            if (rectOrgin) {
                 setRectBounds([rectOrgin, [e.latlng.lat, e.latlng.lng]]);
             }
         },
         mouseup: (e) => {
-            if (isMouseDown && rectOrgin && rectBounds) {
+            if (rectOrgin && rectBounds) {
                 let newLayer: Layer;
                 switch (drawingStates.drawingMode) {
                     case 0: // Rectangle
@@ -67,10 +65,9 @@ function DrawingLayer() {
                         return; // No valid drawing mode selected
                 }
                 setLayers((prevLayers) => [...prevLayers, newLayer]);
-                setIsMouseDown(false);
-                setRectBounds(null);
-                setRectOrigin(null);
             }
+            setRectBounds(null);
+            setRectOrigin(null);
         },
     });
 
@@ -80,7 +77,7 @@ function DrawingLayer() {
         map.dragging.enable();
     }
 
-    if (!isMouseDown || !rectOrgin || !rectBounds) {
+    if (!rectOrgin || !rectBounds) {
         return null;
     }
 
