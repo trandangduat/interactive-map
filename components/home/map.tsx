@@ -5,7 +5,7 @@ import "leaflet/dist/leaflet.css";
 // import "leaflet-defaulticon-compatibility";
 
 import { MapContainer, TileLayer, Marker, Popup, Rectangle, SVGOverlay, useMapEvents, useMap } from "react-leaflet";
-import { bounds, LatLngBoundsExpression, LatLngExpression, LatLngTuple, PointExpression } from 'leaflet';
+import L, { bounds, LatLngBoundsExpression, LatLngExpression, LatLngTuple, PointExpression } from 'leaflet';
 import { useContext, useEffect, useState } from "react";
 import { Layer, SlideContext } from "@/app/page";
 import { v4 as uuidv4 } from "uuid";
@@ -96,7 +96,6 @@ function DrawingLayer() {
 
 function InspectingLayer() {
     const { inspectingLayerId, layers } = useContext(SlideContext);
-    const map = useMap();
 
     if (!inspectingLayerId) {
         return null;
@@ -109,43 +108,82 @@ function InspectingLayer() {
     switch (layer.type) {
         case "rectangle":
             const layerBounds = layer.bounds as [LatLngTuple, LatLngTuple];
-            const paddedBounds: [LatLngTuple, LatLngTuple] = [
-                [
-                    layerBounds[0][0] - 0.0001,
-                    layerBounds[0][1] - 0.0001
-                ],
-                [
-                    layerBounds[1][0] + 0.0001,
-                    layerBounds[1][1] + 0.0001
-                ]
-            ];
+            const corners = {
+                topLeft: [layerBounds[0][0], layerBounds[0][1]],
+                topRight: [layerBounds[0][0], layerBounds[1][1]],
+                bottomLeft: [layerBounds[1][0], layerBounds[0][1]],
+                bottomRight: [layerBounds[1][0], layerBounds[1][1]],
+            };
+
+            const areaDisplay = layer.realLifeArea! < 10000
+                ? `${layer.realLifeArea!.toFixed(1)} m²`
+                : `${(layer.realLifeArea! / 10000).toFixed(2)} ha`;
+
             return (
                 <>
                     <Rectangle
                         key={layer.uuid}
                         bounds={layerBounds}
                         pathOptions={{
-                            color: 'lightgreen',
+                            color: '#3b82f6',
                             weight: 2,
-                            fillColor: 'transparent',
+                            fillColor: '#3b82f6',
                         }}
                     >
-                        <SVGOverlay bounds={layerBounds}>
+                    <SVGOverlay bounds={layerBounds}>
+                        <g>
+                            <rect
+                                x="50%"
+                                y="50%"
+                                width="100"
+                                height="30"
+                                fill="white"
+                                fillOpacity="0.8"
+                                stroke="#3b82f6"
+                                strokeWidth="1"
+                                transform="translate(-50, -15)"
+                            />
                             <text
                                 x="50%"
                                 y="50%"
                                 dominantBaseline="middle"
                                 textAnchor="middle"
-                                fill="none"
-                                stroke="white"
-                                strokeWidth="1"
+                                fill="#3b82f6"
+                                fontSize="16"
+                                fontWeight="bold"
                             >
-                                <tspan fontSize="30" fontWeight={"bold"} fill="black">
-                                    {layer.realLifeArea!.toFixed(0)} m²
-                                </tspan>
+                                {areaDisplay}
                             </text>
-                        </SVGOverlay>
-                    </Rectangle>
+                        </g>
+                    </SVGOverlay>
+
+                        </Rectangle>
+
+                    {Object.entries(corners).map(([position, coord], idx) => (
+                        <Marker
+                            key={`corner-${idx}`}
+                            position={coord as LatLngTuple}
+                            icon={L.divIcon({
+                                className: 'custom-corner-marker',
+                                html: `<div style="
+                                    width: 8px;
+                                    height: 8px;
+                                    background-color: white;
+                                    border: 1px solid #3b82f6;
+                                    outline: 1px solid white;
+                                "></div>`,
+                                iconSize: [8, 8],
+                                iconAnchor: [4, 4]
+                            })}
+                        >
+                            <Popup>
+                                <div className="text-xs font-mono">
+                                    <div>Lat: {(coord as LatLngTuple)[0].toFixed(6)}</div>
+                                    <div>Lng: {(coord as LatLngTuple)[1].toFixed(6)}</div>
+                                </div>
+                            </Popup>
+                        </Marker>
+                    ))}
                 </>
             );
         break;
@@ -163,6 +201,18 @@ function InspectingLayer() {
     }
 }
 
+// Add custom styles for inspection controls
+const inspectionStyles = `
+.custom-corner-marker div {
+    transition: transform 0.2s ease;
+}
+.custom-corner-marker div:hover {
+    transform: scale(1.4);
+    background-color: #3b82f6;
+    cursor: grab;
+}
+`;
+
 export default function Map() {
     const {
         layers,
@@ -171,6 +221,20 @@ export default function Map() {
         latLng,
         mapZoom,
     } = useContext(SlideContext);
+
+    useEffect(() => {
+        if (!document.getElementById('inspection-styles')) {
+            const styleEl = document.createElement('style');
+            styleEl.id = 'inspection-styles';
+            styleEl.innerHTML = inspectionStyles;
+            document.head.appendChild(styleEl);
+        }
+
+        return () => {
+            const styleEl = document.getElementById('inspection-styles');
+            if (styleEl) styleEl.remove();
+        };
+    }, []);
 
     return (
         <MapContainer
