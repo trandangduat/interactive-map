@@ -13,10 +13,16 @@ function LayerInfoPanel({ layer, isSelected }: { layer: Layer, isSelected: boole
       </div>
       <div className="space-y-1">
         {layer.type === "rectangle" && (
-          <div className="mt-2">
-            <p className="font-medium">Bounds:</p>
-            <p className="pl-2 text-xs">Area on map: {JSON.stringify((layer as RectLayer).bounds)}</p>
-          </div>
+          <>
+            <div className="mt-2">
+              <p className="font-medium">Bounds:</p>
+              <p className="pl-2 text-xs">{JSON.stringify((layer as RectLayer).bounds)}</p>
+            </div>
+            <div className="mt-2">
+              <p className="font-medium">Real life area:</p>
+              <p className="pl-1 text-xs">{layer.realLifeArea?.toFixed(4)} m2</p>
+            </div>
+          </>
         )}
 
         {layer.type === "circle" && (

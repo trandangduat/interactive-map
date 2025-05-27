@@ -5,7 +5,7 @@ import "leaflet/dist/leaflet.css";
 // import "leaflet-defaulticon-compatibility";
 
 import { MapContainer, TileLayer, Marker, Popup, Rectangle, SVGOverlay, useMapEvents, useMap } from "react-leaflet";
-import { bounds, LatLngBoundsExpression, LatLngExpression, LatLngTuple } from 'leaflet';
+import { bounds, LatLngBoundsExpression, LatLngExpression, LatLngTuple, PointExpression } from 'leaflet';
 import { useContext, useEffect, useState } from "react";
 import { Layer, SlideContext } from "@/app/page";
 import { v4 as uuidv4 } from "uuid";
@@ -33,19 +33,30 @@ function DrawingLayer() {
                 let newLayer: Layer;
                 switch (drawingStates.drawingMode) {
                     case 0: // Rectangle
+                        let rectBounds: LatLngBoundsExpression = [
+                            rectOrgin,
+                            [e.latlng.lat, e.latlng.lng]
+                        ];
                         newLayer = {
                             type: "rectangle",
                             order: layers.length,
                             uuid: uuidv4(),
                             isPinned: false,
                             isHidden: false,
-                            bounds: [rectOrgin, [e.latlng.lat, e.latlng.lng]],
+                            bounds: rectBounds,
                             pathOptions: {
                                 color: drawingStates.strokeColor || 'blue',
                                 fillColor: drawingStates.fillColor || 'blue',
                                 fillOpacity: drawingStates.fillOpacity || 0.5,
                             },
                         };
+                        newLayer.realLifeArea = map.distance(
+                            rectBounds[0],
+                            [rectBounds[0][0], rectBounds[1][1]]
+                        ) * map.distance(
+                            rectBounds[0],
+                            [rectBounds[1][0], rectBounds[0][1]]
+                        );
                         setInspectingLayerId(newLayer.uuid);
                         break;
                     case 1: // Circle
@@ -101,13 +112,6 @@ function InspectingLayer() {
     switch (layer.type) {
         case "rectangle":
             const layerBounds = layer.bounds as [LatLngTuple, LatLngTuple];
-            const area = map.distance(
-                layerBounds[0],
-                [layerBounds[0][0], layerBounds[1][1]]
-            ) * map.distance(
-                layerBounds[0],
-                [layerBounds[1][0], layerBounds[0][1]]
-            );
             const paddedBounds: [LatLngTuple, LatLngTuple] = [
                 [
                     layerBounds[0][0] - 0.0001,
@@ -140,7 +144,7 @@ function InspectingLayer() {
                                 strokeWidth="1"
                             >
                                 <tspan fontSize="30" fontWeight={"bold"} fill="black">
-                                    {area.toFixed(0)} m²
+                                    {layer.realLifeArea!.toFixed(0)} m²
                                 </tspan>
                             </text>
                         </SVGOverlay>

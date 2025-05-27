@@ -17,6 +17,7 @@ export interface BaseLayer {
   uuid: string,
   isPinned: boolean,
   isHidden: boolean,
+  realLifeArea?: number, // Area in square meters
 }
 
 export interface RectLayer extends BaseLayer {
