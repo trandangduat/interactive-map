@@ -94,7 +94,11 @@ function DrawingLayer() {
 }
 
 function InspectingLayer() {
-    const { inspectingLayerId, layers } = useContext(SlideContext);
+    const { inspectingLayerId, layers, isPresenting } = useContext(SlideContext);
+
+    if (isPresenting) {
+        return null;
+    }
 
     if (!inspectingLayerId) {
         return null;
