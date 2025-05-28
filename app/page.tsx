@@ -4,9 +4,9 @@ import LayerSidebar from "@/components/home/layer-sidebar";
 import Toolbar from "@/components/home/toolbar";
 import { cn } from "@/lib/utils";
 import { Layer } from "@/types/layer";
-import { LatLngBoundsExpression, PathOptions } from "leaflet";
 import dynamic from "next/dynamic";
 import { createContext, Dispatch, SetStateAction, useEffect, useState } from "react";
+import { HistoryStack } from "./history-stack";
 
 const LazyMap = dynamic(() => import("@/components/home/map"), {
   ssr: false,
@@ -28,6 +28,7 @@ type SlideContextProps = {
   drawingStates: DrawingStates,
   mapZoom: number,
   inspectingLayerId: string | null,
+  slideHistory: HistoryStack,
   setLayers: Dispatch<SetStateAction<Layer[]>>,
   setLatLng: Dispatch<SetStateAction<[number, number]>>,
   setIsPresenting: Dispatch<SetStateAction<boolean>>,
@@ -35,6 +36,7 @@ type SlideContextProps = {
   setDrawingStates: Dispatch<SetStateAction<DrawingStates>>,
   setMapZoom: Dispatch<SetStateAction<number>>,
   setInspectingLayerId: Dispatch<SetStateAction<string | null>>,
+  setSlideHistory: Dispatch<SetStateAction<HistoryStack>>,
 };
 
 export const SlideContext = createContext<SlideContextProps>({
@@ -51,6 +53,7 @@ export const SlideContext = createContext<SlideContextProps>({
   },
   mapZoom: 16,
   inspectingLayerId: null,
+  slideHistory: new HistoryStack(),
   setLayers: () => {},
   setLatLng: () => {},
   setIsPresenting: () => {},
@@ -58,6 +61,7 @@ export const SlideContext = createContext<SlideContextProps>({
   setDrawingStates: () => {},
   setMapZoom: () => {},
   setInspectingLayerId: () => {},
+  setSlideHistory: () => {},
 });
 
 export default function Home() {
@@ -74,6 +78,9 @@ export default function Home() {
   const [isPresenting, setIsPresenting] = useState<boolean>(false);
   const [currentLayerIndex, setCurrentLayerIndex] = useState<number>(-1);
   const [inspectingLayerId, setInspectingLayerId] = useState<string | null>(null);
+  const [slideHistory, setSlideHistory] = useState<HistoryStack>(new HistoryStack());
+
+  slideHistory.actions.filter(action => console.log(action.type));
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -136,6 +143,7 @@ export default function Home() {
         drawingStates,
         mapZoom,
         inspectingLayerId,
+        slideHistory,
         setLayers,
         setLatLng,
         setIsPresenting,
@@ -143,11 +151,12 @@ export default function Home() {
         setDrawingStates,
         setMapZoom,
         setInspectingLayerId,
+        setSlideHistory,
       }}>
         <div className="flex flex-row mx-auto">
-          <div className="flex flex-col flex-1">
+          <div className="flex flex-col flex-1 h-screen">
             <Toolbar />
-            <div className={cn("mx-auto w-full h-dvh z-1", isPresenting ? "fixed top-0 left-0 z-20" : "relative")}>
+            <div className={cn("mx-auto w-full h-full z-1", isPresenting ? "fixed top-0 left-0 z-20" : "relative")}>
               <LazyMap />
             </div>
           </div>

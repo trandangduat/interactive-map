@@ -2,6 +2,9 @@ import { Layer } from "./layer";
 
 export interface Action {
   type: string;
+  layer?: Layer;
+  oldIndex?: number;
+  newIndex?: number;
 };
 
 export interface NewLayerAction extends Action {

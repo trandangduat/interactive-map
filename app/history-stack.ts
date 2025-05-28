@@ -28,4 +28,11 @@ export class HistoryStack implements HistoryStackInterface {
     this.actions = [];
     this.currentIndex = -1;
   }
+
+  copy(): HistoryStack {
+    const newStack = new HistoryStack();
+    newStack.actions = [...this.actions];
+    newStack.currentIndex = this.currentIndex;
+    return newStack;
+  }
 }

@@ -10,11 +10,13 @@ import { useContext, useEffect, useState } from "react";
 import { SlideContext } from "@/app/page";
 import { v4 as uuidv4 } from "uuid";
 import { Layer } from "@/types/layer";
+import { NewLayerAction } from "@/types/history-stack";
+import { HistoryStack } from "@/app/history-stack";
 
 function DrawingLayer() {
     const [rectOrgin, setRectOrigin] = useState<LatLngTuple | null>();
     const [rectBounds, setRectBounds] = useState<LatLngBoundsExpression | null>();
-    const { layers, setLayers, drawingStates, setInspectingLayerId } = useContext(SlideContext);
+    const { setLayers, drawingStates, setInspectingLayerId, slideHistory, setSlideHistory } = useContext(SlideContext);
 
     const map = useMapEvents({
         mousedown: (e) => {
@@ -65,6 +67,14 @@ function DrawingLayer() {
                         return; // No valid drawing mode selected
                 }
                 setLayers((prevLayers) => [...prevLayers, newLayer]);
+                setSlideHistory(prev => {
+                    const newSlideHistory = prev.copy();
+                    newSlideHistory.push({
+                        type: "NEW_LAYER",
+                        layer: {...newLayer},
+                    } as NewLayerAction);
+                    return newSlideHistory;
+                });
             }
             setRectBounds(null);
             setRectOrigin(null);
