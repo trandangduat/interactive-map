@@ -100,6 +100,50 @@ export default function Home() {
             return newLayers;
           });
           break;
+        case "PIN_LAYER":
+          setLayers((prevLayers) =>
+            prevLayers.map(layer =>
+              layer.uuid === lastAction.layer!.uuid
+                ? { ...layer, isPinned: false }
+                : layer
+            )
+          );
+          break;
+        case "UNPIN_LAYER":
+          setLayers((prevLayers) =>
+            prevLayers.map(layer =>
+              layer.uuid === lastAction.layer!.uuid
+                ? { ...layer, isPinned: true }
+                : layer
+            )
+          );
+          break;
+        case "HIDE_LAYER":
+          setLayers((prevLayers) =>
+            prevLayers.map(layer =>
+              layer.uuid === lastAction.layer!.uuid
+                ? { ...layer, isHidden: false }
+                : layer
+            )
+          );
+          break;
+        case "UNHIDE_LAYER":
+          setLayers((prevLayers) =>
+            prevLayers.map(layer =>
+              layer.uuid === lastAction.layer!.uuid
+                ? { ...layer, isHidden: true }
+                : layer
+            )
+          );
+          break;
+        case "REORDER_LAYER":
+          setLayers((prevLayers) => {
+            const newLayers = [...prevLayers];
+            const movedLayer = newLayers.splice(lastAction.newIndex!, 1)[0];
+            newLayers.splice(lastAction.oldIndex!, 0, movedLayer);
+            return newLayers;
+          });
+          break;
       }
     }
   };
@@ -113,6 +157,50 @@ export default function Home() {
           break;
         case "DELETE_LAYER":
           setLayers((prevLayers) => prevLayers.filter(layer => layer.uuid !== lastAction.layer!.uuid));
+          break;
+        case "PIN_LAYER":
+          setLayers((prevLayers) =>
+            prevLayers.map(layer =>
+              layer.uuid === lastAction.layer!.uuid
+                ? { ...layer, isPinned: true }
+                : layer
+            )
+          );
+          break;
+        case "UNPIN_LAYER":
+          setLayers((prevLayers) =>
+            prevLayers.map(layer =>
+              layer.uuid === lastAction.layer!.uuid
+                ? { ...layer, isPinned: false }
+                : layer
+            )
+          );
+          break;
+        case "HIDE_LAYER":
+          setLayers((prevLayers) =>
+            prevLayers.map(layer =>
+              layer.uuid === lastAction.layer!.uuid
+                ? { ...layer, isHidden: true }
+                : layer
+            )
+          );
+          break;
+        case "UNHIDE_LAYER":
+          setLayers((prevLayers) =>
+            prevLayers.map(layer =>
+              layer.uuid === lastAction.layer!.uuid
+                ? { ...layer, isHidden: false }
+                : layer
+            )
+          );
+          break;
+        case "REORDER_LAYER":
+          setLayers((prevLayers) => {
+            const newLayers = [...prevLayers];
+            const movedLayer = newLayers.splice(lastAction.oldIndex!, 1)[0];
+            newLayers.splice(lastAction.newIndex!, 0, movedLayer);
+            return newLayers;
+          });
           break;
       }
     }

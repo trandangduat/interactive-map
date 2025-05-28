@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronUp, Eye, EyeOff, Pin, PinOff, Plus, Square, SquarePlus, Trash2 } from "lucide-react";
 import { JSX, useContext, useState } from "react";
 import { SlideContext } from "@/app/page";
-import { DeleteLayerAction } from "@/types/history-stack";
+import { DeleteLayerAction, HideLayerAction, PinLayerAction, ReorderLayerAction, UnHideLayerAction, UnPinLayerAction } from "@/types/history-stack";
 
 // Layer info display component
 function LayerInfoPanel({ layer, isSelected }: { layer: Layer, isSelected: boolean }) {
@@ -97,6 +97,17 @@ export default function LayerSidebar() {
 
   const toggleLockLayer = (e: React.MouseEvent<HTMLDivElement, MouseEvent>, index: number) => {
     e.stopPropagation(); // Prevent the click from propagating to the button's onClick
+    const isPinned = layers[index].isPinned;
+
+    setSlideHistory(prev => {
+      const newSlideHistory = prev.copy();
+      newSlideHistory.push({
+        type: isPinned ? "UNPIN_LAYER" : "PIN_LAYER",
+        layer: {...layers[index]}
+      });
+      return newSlideHistory;
+    });
+
     setLayers(prevLayers => {
       const newLayers = [...prevLayers];
       newLayers[index] = {
@@ -109,6 +120,17 @@ export default function LayerSidebar() {
 
   const toggleHideLayer = (e: React.MouseEvent<HTMLDivElement, MouseEvent>, index: number) => {
     e.stopPropagation();
+    const isHidden = layers[index].isHidden;
+
+    setSlideHistory(prev => {
+      const newSlideHistory = prev.copy();
+      newSlideHistory.push({
+        type: isHidden ? "UNHIDE_LAYER" : "HIDE_LAYER",
+        layer: {...layers[index]}
+      });
+      return newSlideHistory;
+    });
+
     setLayers(prevLayers => {
       const newLayers = [...prevLayers];
       newLayers[index] = {
@@ -149,6 +171,17 @@ export default function LayerSidebar() {
   };
   const handleDrop = (e: React.DragEvent<HTMLDivElement>, index: number) => {
     e.preventDefault();
+
+    setSlideHistory(prev => {
+      const newSlideHistory = prev.copy();
+      newSlideHistory.push({
+        type: "REORDER_LAYER",
+        oldIndex: dragStartIndex!,
+        newIndex: index
+      });
+      return newSlideHistory;
+    });
+
     setLayers(prevLayers => {
       const newLayers = [...prevLayers];
       const reorderedLayer = newLayers.splice(dragStartIndex!, 1)[0];
@@ -278,6 +311,31 @@ export default function LayerSidebar() {
                 <>
                   <Trash2 size={16} />
                   <p>{action.type} - {action.layer!.uuid.slice(0, 5)}</p>
+                </>
+              ) : action.type === "PIN_LAYER" ? (
+                <>
+                  <Pin size={16} />
+                  <p>{action.type} - {action.layer!.uuid.slice(0, 5)}</p>
+                </>
+              ) : action.type === "UNPIN_LAYER" ? (
+                <>
+                  <PinOff size={16} />
+                  <p>{action.type} - {action.layer!.uuid.slice(0, 5)}</p>
+                </>
+              ) : action.type === "HIDE_LAYER" ? (
+                <>
+                  <EyeOff size={16} />
+                  <p>{action.type} - {action.layer!.uuid.slice(0, 5)}</p>
+                </>
+              ) : action.type === "UNHIDE_LAYER" ? (
+                <>
+                  <Eye size={16} />
+                  <p>{action.type} - {action.layer!.uuid.slice(0, 5)}</p>
+                </>
+              ) : action.type === "REORDER_LAYER" ? (
+                <>
+                  <ChevronUp size={16} />
+                  <p>{action.type} - {action.oldIndex} to {action.newIndex}</p>
                 </>
               ) : (
                 <>
