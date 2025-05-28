@@ -4,7 +4,6 @@ import { ChevronDown, ChevronUp, Eye, EyeOff, Pin, PinOff, Plus, Square, SquareP
 import { JSX, useContext, useEffect, useRef, useState } from "react";
 import { SlideContext } from "@/app/page";
 import { DeleteLayerAction, HideLayerAction, PinLayerAction, ReorderLayerAction, UnHideLayerAction, UnPinLayerAction } from "@/types/history-stack";
-import { HistoryStack } from "@/app/history-stack";
 
 // Layer info display component
 function LayerInfoPanel({ layer, isSelected }: { layer: Layer, isSelected: boolean }) {
@@ -72,29 +71,17 @@ function LayerInfoPanel({ layer, isSelected }: { layer: Layer, isSelected: boole
   );
 }
 
-export default function LayerSidebar() {
+function LayersPane() {
   const {
     layers,
     setLayers,
     inspectingLayerId,
     setInspectingLayerId,
-    slideHistory,
     setSlideHistory,
-    undo, redo
   } = useContext(SlideContext);
-
-  // State to track which layers have expanded info panels
   const [expandedLayers, setExpandedLayers] = useState<Record<string, boolean>>({});
   const [dragStartIndex, setDragStartIndex] = useState<number | null>(null);
   const [draggedOverIndex, setDraggedOverIndex] = useState<number | null>(null);
-  const historyBoardRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    historyBoardRef.current?.scrollTo({
-      top: historyBoardRef.current.scrollHeight,
-      behavior: 'smooth'
-    });
-  }, [slideHistory]);
 
   const toggleLayerInfo = (e: React.MouseEvent<HTMLDivElement, MouseEvent>, layerId: string) => {
     e.stopPropagation();
@@ -202,159 +189,194 @@ export default function LayerSidebar() {
   };
 
   return (
-    <div className="bg-slate-600 text-white w-90 flex flex-col justify-between" onClick={() => setInspectingLayerId(null)}>
-      <div className="basis-2/3">
-        <p className="text-white text-2xl m-2">Layers</p>
-        {layers.map((layer, index) => {
-          let layerIcon: JSX.Element;
-          switch (layer.type) {
-            case "rectangle":
-              layerIcon = <Square size={16} />;
-              break;
-          }
+    <>
+    <p className="text-white text-2xl m-2">Layers</p>
+    <div className="overflow-y-auto h-full"> {/* Add h-full here and keep overflow-y-auto */}
+    {layers.map((layer, index) => {
+      let layerIcon: JSX.Element;
+      switch (layer.type) {
+        case "rectangle":
+          layerIcon = <Square size={16} />;
+          break;
+      }
 
-          const isExpanded = expandedLayers[layer.uuid] || false;
-          const isSelected = inspectingLayerId === layer.uuid;
+      const isExpanded = expandedLayers[layer.uuid] || false;
+      const isSelected = inspectingLayerId === layer.uuid;
 
-          return (
-            <div
-              key={layer.uuid}
-              className={cn("border-b border-slate-500", draggedOverIndex === index && "border-t-2 border-t-slate-300")}
-              draggable={true}
-              onDragStart={(e) => handleDragStart(e, index)}
-              onDragOver={(e) => handleDragOver(e, index)}
-              onDrop={(e) => handleDrop(e, index)}
-            >
-              <button
-                className={cn(
-                  "flex flex-row justify-between items-center p-3 w-full bg-slate-700 cursor-pointer",
-                  isSelected && "bg-slate-800",
-                )}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setInspectingLayerId(layer.uuid);
-                }}
-              >
-                <div className="flex flex-row items-center gap-2 text-sm">
-                  {layerIcon!}
-                  {index + " " + layer.type + "_" + layer.uuid.slice(0,5)}
-                </div>
-                <div className="flex flex-row items-center gap-2">
-                  <div
-                    className="cursor-pointer hover:bg-slate-600 p-1 rounded"
-                    onClick={(e) => toggleLayerInfo(e, layer.uuid)}
-                    title="Toggle layer info"
-                  >
-                    {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                  </div>
-                  <div
-                    className="cursor-pointer hover:bg-slate-600 p-1 rounded"
-                    onClick={(e) => toggleLockLayer(e, index)}
-                    title={layer.isPinned ? "Unpin layer" : "Pin layer"}
-                  >
-                    {layer.isPinned ? (
-                      <PinOff size={16} />
-                    ) : (
-                      <Pin size={16} />
-                    )}
-                  </div>
-                  <div
-                    className="cursor-pointer hover:bg-slate-600 p-1 rounded"
-                    onClick={(e) => toggleHideLayer(e, index)}
-                    title={layer.isHidden ? "Show layer" : "Hide layer"}
-                  >
-                    {layer.isHidden ? (
-                      <EyeOff size={16} />
-                    ) : (
-                      <Eye size={16} />
-                    )}
-                  </div>
-                  <div
-                    className="cursor-pointer hover:bg-slate-600 p-1 rounded"
-                    onClick={(e) => removeLayer(e, index)}
-                    title="Remove layer"
-                  >
-                    <Trash2 size={16} />
-                  </div>
-                </div>
-              </button>
-
-              {/* Render layer info panel when expanded */}
-              {isExpanded && (
-                <LayerInfoPanel layer={layer} isSelected={isSelected} />
-              )}
+      return (
+        <div
+          key={layer.uuid}
+          className={cn("border-b border-slate-500", draggedOverIndex === index && "border-t-2 border-t-slate-300")}
+          draggable={true}
+          onDragStart={(e) => handleDragStart(e, index)}
+          onDragOver={(e) => handleDragOver(e, index)}
+          onDrop={(e) => handleDrop(e, index)}
+        >
+          <button
+            className={cn(
+              "flex flex-row justify-between items-center p-3 w-full bg-slate-700 cursor-pointer",
+              isSelected && "bg-slate-800",
+            )}
+            onClick={(e) => {
+              e.stopPropagation();
+              setInspectingLayerId(layer.uuid);
+            }}
+          >
+            <div className="flex flex-row items-center gap-2 text-sm">
+              {layerIcon!}
+              {index + " " + layer.type + "_" + layer.uuid.slice(0,5)}
             </div>
-          );
-        })}
-      </div>
-      <div className="basis-1/3 border-t-1 border-slate-400">
-        <p className="text-white text-2xl m-2 mb-4">History</p>
-        <div className="h-70 overflow-y-auto" ref={historyBoardRef}>
-        {slideHistory.actions.map((action, index) => (
-          <div key={index} className="border-b border-slate-500">
-            <button
-              className={cn(
-                "bg-slate-700 p-2 w-full flex flex-row items-center gap-2 cursor-pointer text-sm",
-                slideHistory.currentIndex === index && "bg-slate-800",
-                slideHistory.currentIndex < index && "opacity-40",
-                slideHistory.currentIndex > index && "opacity-100"
-              )}
-              onClick={() => {
-                let diff:number = index - slideHistory.currentIndex;
-                while (diff > 0) {
-                  redo();
-                  diff--;
-                }
-                while (diff < 0) {
-                  undo();
-                  diff++;
-                }
-              }}
-            >
-              {action.type === "NEW_LAYER" ? (
-                <>
-                  <Plus size={16} />
-                  <p>{action.type} - {action.layer!.uuid.slice(0, 5)}</p>
-                </>
-              ) : action.type === "DELETE_LAYER" ? (
-                <>
-                  <Trash2 size={16} />
-                  <p>{action.type} - {action.layer!.uuid.slice(0, 5)}</p>
-                </>
-              ) : action.type === "PIN_LAYER" ? (
-                <>
-                  <Pin size={16} />
-                  <p>{action.type} - {action.layer!.uuid.slice(0, 5)}</p>
-                </>
-              ) : action.type === "UNPIN_LAYER" ? (
-                <>
+            <div className="flex flex-row items-center gap-2">
+              <div
+                className="cursor-pointer hover:bg-slate-600 p-1 rounded"
+                onClick={(e) => toggleLayerInfo(e, layer.uuid)}
+                title="Toggle layer info"
+              >
+                {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </div>
+              <div
+                className="cursor-pointer hover:bg-slate-600 p-1 rounded"
+                onClick={(e) => toggleLockLayer(e, index)}
+                title={layer.isPinned ? "Unpin layer" : "Pin layer"}
+              >
+                {layer.isPinned ? (
                   <PinOff size={16} />
-                  <p>{action.type} - {action.layer!.uuid.slice(0, 5)}</p>
-                </>
-              ) : action.type === "HIDE_LAYER" ? (
-                <>
+                ) : (
+                  <Pin size={16} />
+                )}
+              </div>
+              <div
+                className="cursor-pointer hover:bg-slate-600 p-1 rounded"
+                onClick={(e) => toggleHideLayer(e, index)}
+                title={layer.isHidden ? "Show layer" : "Hide layer"}
+              >
+                {layer.isHidden ? (
                   <EyeOff size={16} />
-                  <p>{action.type} - {action.layer!.uuid.slice(0, 5)}</p>
-                </>
-              ) : action.type === "UNHIDE_LAYER" ? (
-                <>
+                ) : (
                   <Eye size={16} />
-                  <p>{action.type} - {action.layer!.uuid.slice(0, 5)}</p>
-                </>
-              ) : action.type === "REORDER_LAYER" ? (
-                <>
-                  <ChevronUp size={16} />
-                  <p>{action.type} - {action.oldIndex} to {action.newIndex}</p>
-                </>
-              ) : (
-                <>
-                  <p>{action.type}</p>
-                </>
-              )}
-            </button>
-          </div>
-        ))}
+                )}
+              </div>
+              <div
+                className="cursor-pointer hover:bg-slate-600 p-1 rounded"
+                onClick={(e) => removeLayer(e, index)}
+                title="Remove layer"
+              >
+                <Trash2 size={16} />
+              </div>
+            </div>
+          </button>
+
+          {/* Render layer info panel when expanded */}
+          {isExpanded && (
+            <LayerInfoPanel layer={layer} isSelected={isSelected} />
+          )}
         </div>
+      );
+    })}
+    </div>
+    </>
+  )
+}
+
+function HistoryPane() {
+  const {
+    slideHistory,
+    undo,
+    redo
+  } = useContext(SlideContext);
+
+  const historyBoardRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    historyBoardRef.current?.scrollTo({
+      top: historyBoardRef.current.scrollHeight,
+      behavior: 'smooth'
+    });
+  }, [slideHistory]);
+
+  return (
+  <>
+    <p className="text-white text-2xl m-2 mb-4">History</p>
+    <div className="h-full overflow-y-auto" ref={historyBoardRef}> {/* Add h-full here */}
+    {slideHistory.actions.map((action, index) => (
+      <div key={index} className="border-b border-slate-500">
+        <button
+          className={cn(
+            "bg-slate-700 p-2 w-full flex flex-row items-center gap-2 cursor-pointer text-sm",
+            slideHistory.currentIndex === index && "bg-slate-800",
+            slideHistory.currentIndex < index && "opacity-40",
+            slideHistory.currentIndex > index && "opacity-100"
+          )}
+          onClick={() => {
+            let diff:number = index - slideHistory.currentIndex;
+            while (diff > 0) {
+              redo();
+              diff--;
+            }
+            while (diff < 0) {
+              undo();
+              diff++;
+            }
+          }}
+        >
+          {action.type === "NEW_LAYER" ? (
+            <>
+              <Plus size={16} />
+              <p>{action.type} - {action.layer!.uuid.slice(0, 5)}</p>
+            </>
+          ) : action.type === "DELETE_LAYER" ? (
+            <>
+              <Trash2 size={16} />
+              <p>{action.type} - {action.layer!.uuid.slice(0, 5)}</p>
+            </>
+          ) : action.type === "PIN_LAYER" ? (
+            <>
+              <Pin size={16} />
+              <p>{action.type} - {action.layer!.uuid.slice(0, 5)}</p>
+            </>
+          ) : action.type === "UNPIN_LAYER" ? (
+            <>
+              <PinOff size={16} />
+              <p>{action.type} - {action.layer!.uuid.slice(0, 5)}</p>
+            </>
+          ) : action.type === "HIDE_LAYER" ? (
+            <>
+              <EyeOff size={16} />
+              <p>{action.type} - {action.layer!.uuid.slice(0, 5)}</p>
+            </>
+          ) : action.type === "UNHIDE_LAYER" ? (
+            <>
+              <Eye size={16} />
+              <p>{action.type} - {action.layer!.uuid.slice(0, 5)}</p>
+            </>
+          ) : action.type === "REORDER_LAYER" ? (
+            <>
+              <ChevronUp size={16} />
+              <p>{action.type} - {action.oldIndex} to {action.newIndex}</p>
+            </>
+          ) : (
+            <>
+              <p>{action.type}</p>
+            </>
+          )}
+        </button>
+      </div>
+    ))}
+    </div>
+  </>
+  )
+}
+
+export default function Sidebar() {
+  const { setInspectingLayerId } = useContext(SlideContext);
+
+  return (
+    <div className="bg-slate-600 text-white w-90 flex flex-col justify-between h-screen" onClick={() => setInspectingLayerId(null)}>
+      <div className="basis-2/3 flex flex-col overflow-hidden"> {/* Add flex flex-col and overflow-hidden */}
+        <LayersPane />
+      </div>
+      <div className="basis-1/3 flex flex-col overflow-hidden border-t border-slate-400"> {/* Add flex flex-col and overflow-hidden */}
+        <HistoryPane />
       </div>
     </div>
   );

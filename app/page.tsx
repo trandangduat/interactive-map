@@ -1,6 +1,5 @@
 "use client"
 
-import LayerSidebar from "@/components/home/layer-sidebar";
 import Toolbar from "@/components/home/toolbar";
 import { cn } from "@/lib/utils";
 import { Layer } from "@/types/layer";
@@ -8,6 +7,7 @@ import dynamic from "next/dynamic";
 import { createContext, Dispatch, SetStateAction, useEffect, useState } from "react";
 import { HistoryStack } from "./history-stack";
 import { Action } from "@/types/history-stack";
+import Sidebar from "@/components/home/sidebar";
 
 const LazyMap = dynamic(() => import("@/components/home/map"), {
   ssr: false,
@@ -285,7 +285,7 @@ export default function Home() {
               <LazyMap />
             </div>
           </div>
-          <LayerSidebar />
+          <Sidebar />
         </div>
       </SlideContext.Provider>
     </>
