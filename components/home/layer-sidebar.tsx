@@ -1,9 +1,10 @@
 import { ArrowLayer, CircleLayer, Layer, RectLayer } from "@/types/layer";
 import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronUp, Eye, EyeOff, Pin, PinOff, Plus, Square, SquarePlus, Trash2 } from "lucide-react";
-import { JSX, useContext, useState } from "react";
+import { JSX, useContext, useEffect, useRef, useState } from "react";
 import { SlideContext } from "@/app/page";
 import { DeleteLayerAction, HideLayerAction, PinLayerAction, ReorderLayerAction, UnHideLayerAction, UnPinLayerAction } from "@/types/history-stack";
+import { HistoryStack } from "@/app/history-stack";
 
 // Layer info display component
 function LayerInfoPanel({ layer, isSelected }: { layer: Layer, isSelected: boolean }) {
@@ -86,6 +87,14 @@ export default function LayerSidebar() {
   const [expandedLayers, setExpandedLayers] = useState<Record<string, boolean>>({});
   const [dragStartIndex, setDragStartIndex] = useState<number | null>(null);
   const [draggedOverIndex, setDraggedOverIndex] = useState<number | null>(null);
+  const historyBoardRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    historyBoardRef.current?.scrollTo({
+      top: historyBoardRef.current.scrollHeight,
+      behavior: 'smooth'
+    });
+  }, [slideHistory]);
 
   const toggleLayerInfo = (e: React.MouseEvent<HTMLDivElement, MouseEvent>, layerId: string) => {
     e.stopPropagation();
@@ -280,7 +289,7 @@ export default function LayerSidebar() {
       </div>
       <div className="basis-1/3 border-t-1 border-slate-400">
         <p className="text-white text-2xl m-2 mb-4">History</p>
-        <div className="h-70 overflow-y-auto">
+        <div className="h-70 overflow-y-auto" ref={historyBoardRef}>
         {slideHistory.actions.map((action, index) => (
           <div key={index} className="border-b border-slate-500">
             <button
