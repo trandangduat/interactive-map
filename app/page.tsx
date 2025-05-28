@@ -7,6 +7,7 @@ import { Layer } from "@/types/layer";
 import dynamic from "next/dynamic";
 import { createContext, Dispatch, SetStateAction, useEffect, useState } from "react";
 import { HistoryStack } from "./history-stack";
+import { Action } from "@/types/history-stack";
 
 const LazyMap = dynamic(() => import("@/components/home/map"), {
   ssr: false,
@@ -37,6 +38,8 @@ type SlideContextProps = {
   setMapZoom: Dispatch<SetStateAction<number>>,
   setInspectingLayerId: Dispatch<SetStateAction<string | null>>,
   setSlideHistory: Dispatch<SetStateAction<HistoryStack>>,
+  undo: () => void,
+  redo: () => void,
 };
 
 export const SlideContext = createContext<SlideContextProps>({
@@ -62,6 +65,8 @@ export const SlideContext = createContext<SlideContextProps>({
   setMapZoom: () => {},
   setInspectingLayerId: () => {},
   setSlideHistory: () => {},
+  undo: () => {},
+  redo: () => {},
 });
 
 export default function Home() {
@@ -80,7 +85,38 @@ export default function Home() {
   const [inspectingLayerId, setInspectingLayerId] = useState<string | null>(null);
   const [slideHistory, setSlideHistory] = useState<HistoryStack>(new HistoryStack());
 
-  slideHistory.actions.filter(action => console.log(action.type));
+  const undo = () => {
+    const lastAction: (Action | null) = slideHistory.undo();
+    console.log(lastAction)
+    if (lastAction) {
+      switch (lastAction.type) {
+        case "NEW_LAYER":
+          setLayers((prevLayers) => prevLayers.filter(layer => layer.uuid !== lastAction.layer!.uuid));
+          break;
+        case "DELETE_LAYER":
+          setLayers((prevLayers) => {
+            const newLayers = [...prevLayers];
+            newLayers.splice(lastAction.oldIndex!, 0, lastAction.layer!);
+            return newLayers;
+          });
+          break;
+      }
+    }
+  };
+
+  const redo = () => {
+    const lastAction: (Action | null) = slideHistory.redo();
+    if (lastAction) {
+      switch (lastAction.type) {
+        case "NEW_LAYER":
+          setLayers((prevLayers) => [...prevLayers, lastAction.layer!]);
+          break;
+        case "DELETE_LAYER":
+          setLayers((prevLayers) => prevLayers.filter(layer => layer.uuid !== lastAction.layer!.uuid));
+          break;
+      }
+    }
+  };
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -152,6 +188,7 @@ export default function Home() {
         setMapZoom,
         setInspectingLayerId,
         setSlideHistory,
+        undo, redo,
       }}>
         <div className="flex flex-row mx-auto">
           <div className="flex flex-col flex-1 h-screen">

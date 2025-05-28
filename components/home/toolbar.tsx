@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { Button } from "../ui/button";
-import { RectLayer, SlideContext } from "@/app/page";
-import { Check } from "lucide-react";
+import { SlideContext } from "@/app/page";
+import { Check, Redo, Undo } from "lucide-react";
 
 const basicColors = [
   "#000000", // Black
@@ -51,7 +51,8 @@ export default function Toolbar() {
     setIsPresenting,
     setCurrentLayerIndex,
     setDrawingStates,
-    setInspectingLayerId
+    setInspectingLayerId,
+    undo, redo
   } = useContext(SlideContext);
 
   const handleRect = () => {
@@ -118,6 +119,8 @@ export default function Toolbar() {
       </Button>
       <Button onClick={handlePresent}>Present</Button>
       <ColorPicker />
+      <Button onClick={() => undo()}><Undo size={16}/> Undo</Button>
+      <Button onClick={() => redo()}><Redo size={16}/> Redo</Button>
     </div>
   )
 }

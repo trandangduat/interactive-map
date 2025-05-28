@@ -15,6 +15,7 @@ export interface NewLayerAction extends Action {
 export interface DeleteLayerAction extends Action {
   type: "DELETE_LAYER";
   layer: Layer;
+  oldIndex: number;
 };
 
 export interface PinLayerAction extends Action {

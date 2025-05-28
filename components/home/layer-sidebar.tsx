@@ -79,6 +79,7 @@ export default function LayerSidebar() {
     setInspectingLayerId,
     slideHistory,
     setSlideHistory,
+    undo, redo
   } = useContext(SlideContext);
 
   // State to track which layers have expanded info panels
@@ -123,8 +124,9 @@ export default function LayerSidebar() {
     setSlideHistory(prev => {
         const newSlideHistory = prev.copy();
         newSlideHistory.push({
-            type: "DELETE_LAYER",
-            layer: {...layers[index]},
+          type: "DELETE_LAYER",
+          layer: {...layers[index]},
+          oldIndex: index,
         } as DeleteLayerAction);
         return newSlideHistory;
     });
@@ -255,13 +257,17 @@ export default function LayerSidebar() {
                 slideHistory.currentIndex < index && "opacity-40",
                 slideHistory.currentIndex > index && "opacity-100"
               )}
-              onClick={() =>
-                setSlideHistory(prev => {
-                  const newSlideHistory = prev.copy();
-                  newSlideHistory.currentIndex = index;
-                  return newSlideHistory;
-                })
-              }
+              onClick={() => {
+                let diff:number = index - slideHistory.currentIndex;
+                while (diff > 0) {
+                  redo();
+                  diff--;
+                }
+                while (diff < 0) {
+                  undo();
+                  diff++;
+                }
+              }}
             >
               {action.type === "NEW_LAYER" ? (
                 <>
