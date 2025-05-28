@@ -52,7 +52,9 @@ export default function Toolbar() {
     setCurrentLayerIndex,
     setDrawingStates,
     setInspectingLayerId,
-    undo, redo
+    undo,
+    redo,
+    slideHistory
   } = useContext(SlideContext);
 
   const handleRect = () => {
@@ -119,8 +121,8 @@ export default function Toolbar() {
       </Button>
       <Button onClick={handlePresent}>Present</Button>
       <ColorPicker />
-      <Button onClick={() => undo()}><Undo size={16}/> Undo</Button>
-      <Button onClick={() => redo()}><Redo size={16}/> Redo</Button>
+      <Button onClick={() => undo()} disabled={slideHistory.currentIndex < 0}><Undo size={16}/> Undo</Button>
+      <Button onClick={() => redo()} disabled={slideHistory.currentIndex == slideHistory.actions.length - 1}><Redo size={16}/> Redo</Button>
     </div>
   )
 }

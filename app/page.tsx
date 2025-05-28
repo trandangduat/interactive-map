@@ -87,7 +87,6 @@ export default function Home() {
 
   const undo = () => {
     const lastAction: (Action | null) = slideHistory.undo();
-    console.log(lastAction)
     if (lastAction) {
       switch (lastAction.type) {
         case "NEW_LAYER":
@@ -256,6 +255,24 @@ export default function Home() {
       document.removeEventListener("keydown", handleNextPresentingLayer);
     };
   }, [isPresenting, layers]);
+
+  useEffect(() => {
+    const handleUndoRedo = (event: KeyboardEvent) => {
+      if (event.ctrlKey) {
+        if (event.key === "z") {
+          undo();
+        } else if (event.key === "y") {
+          console.log("Redoing action");
+          redo();
+        }
+        event.preventDefault();
+      }
+    };
+    document.addEventListener("keydown", handleUndoRedo);
+    return () => {
+      document.removeEventListener("keydown", handleUndoRedo);
+    }
+  }, [slideHistory]);
 
   return (
     <>
