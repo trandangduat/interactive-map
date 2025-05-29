@@ -8,6 +8,7 @@ import { createContext, Dispatch, SetStateAction, useEffect, useState } from "re
 import { HistoryStack } from "./history-stack";
 import { Action } from "@/types/history-stack";
 import Sidebar from "@/components/home/sidebar";
+import SlidesControl from "@/components/home/slides-control";
 
 const LazyMap = dynamic(() => import("@/components/home/map"), {
   ssr: false,
@@ -20,6 +21,27 @@ export type DrawingStates = {
   fillColor?: string,
   fillOpacity?: number,
 };
+
+type Slide = {
+  layers: Layer[],
+  latLng: [number, number],
+  mapZoom: number,
+  slideHistory: HistoryStack,
+};
+
+type SlidesControlContextProps = {
+  slides: Slide[],
+  currentSlideIndex: number,
+  setSlides: Dispatch<SetStateAction<Slide[]>>,
+  setCurrentSlideIndex: Dispatch<SetStateAction<number>>,
+};
+
+export const SlidesControlContext = createContext<SlidesControlContextProps>({
+  slides: [],
+  currentSlideIndex: 0,
+  setSlides: () => {},
+  setCurrentSlideIndex: () => {},
+});
 
 type SlideContextProps = {
   layers: Layer[],
@@ -84,6 +106,74 @@ export default function Home() {
   const [currentLayerIndex, setCurrentLayerIndex] = useState<number>(-1);
   const [inspectingLayerId, setInspectingLayerId] = useState<string | null>(null);
   const [slideHistory, setSlideHistory] = useState<HistoryStack>(new HistoryStack());
+
+  const [slides, setSlides] = useState<Slide[]>([{
+    layers: [],
+    latLng: [21.03, 105.804],
+    mapZoom: 16,
+    slideHistory: new HistoryStack(),
+  }]);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
+
+  const resetSlide = () => {
+    setLayers([]);
+    setLatLng([21.03, 105.804]);
+    setMapZoom(16);
+    setDrawingStates({
+      isDrawing: false,
+      drawingMode: -1,
+      strokeColor: "#000000",
+      fillColor: "#000000",
+      fillOpacity: 0.2,
+    });
+    setCurrentLayerIndex(-1);
+    setInspectingLayerId(null);
+    setSlideHistory(new HistoryStack());
+  };
+
+  useEffect(() => {
+    console.log("Current slide index changed:", currentSlideIndex);
+    console.log(slides.length)
+    if (currentSlideIndex >= slides.length) {
+      console.log("Current layer index exceeds the number of layers in the current slide.");
+      setSlides((prevSlides) => [
+        ...prevSlides,
+        {
+          layers: [],
+          latLng: [21.03, 105.804],
+          mapZoom: 16,
+          slideHistory: new HistoryStack(),
+        },
+      ]);
+      resetSlide();
+    } else {
+      const currentSlide = slides[currentSlideIndex];
+      if (currentSlide) {
+        setLayers(currentSlide.layers);
+        setLatLng(currentSlide.latLng);
+        setMapZoom(currentSlide.mapZoom);
+        setSlideHistory(currentSlide.slideHistory);
+      } else {
+        resetSlide();
+      }
+    }
+  }, [currentSlideIndex]);
+
+  useEffect(() => {
+    if (currentSlideIndex < slides.length) {
+      setSlides((prevSlides) => {
+        const updatedSlides = [...prevSlides];
+        updatedSlides[currentSlideIndex] = {
+          ...updatedSlides[currentSlideIndex],
+          layers: layers,
+          latLng: latLng,
+          mapZoom: mapZoom,
+          slideHistory: slideHistory,
+        };
+        return updatedSlides;
+      });
+    }
+  }, [layers, latLng, mapZoom, slideHistory]);
 
   const undo = () => {
     const lastAction: (Action | null) = slideHistory.undo();
@@ -276,35 +366,44 @@ export default function Home() {
 
   return (
     <>
-      <SlideContext.Provider value={{
-        layers,
-        latLng,
-        currentLayerIndex,
-        isPresenting,
-        drawingStates,
-        mapZoom,
-        inspectingLayerId,
-        slideHistory,
-        setLayers,
-        setLatLng,
-        setIsPresenting,
-        setCurrentLayerIndex,
-        setDrawingStates,
-        setMapZoom,
-        setInspectingLayerId,
-        setSlideHistory,
-        undo, redo,
+      <SlidesControlContext.Provider value={{
+          slides,
+          currentSlideIndex,
+          setSlides,
+          setCurrentSlideIndex,
       }}>
-        <div className="flex flex-row mx-auto">
-          <div className="flex flex-col flex-1 h-screen">
-            <Toolbar />
-            <div className={cn("mx-auto w-full h-full z-1", isPresenting ? "fixed top-0 left-0 z-20" : "relative")}>
-              <LazyMap />
+        <SlideContext.Provider value={{
+          layers,
+          latLng,
+          currentLayerIndex,
+          isPresenting,
+          drawingStates,
+          mapZoom,
+          inspectingLayerId,
+          slideHistory,
+          setLayers,
+          setLatLng,
+          setIsPresenting,
+          setCurrentLayerIndex,
+          setDrawingStates,
+          setMapZoom,
+          setInspectingLayerId,
+          setSlideHistory,
+          undo, redo,
+        }}>
+          <div className="flex flex-row mx-auto">
+            <SlidesControl />
+            <div className="flex flex-col flex-1 h-screen">
+              <Toolbar />
+              <div className={cn("mx-auto w-full h-full z-1", isPresenting ? "fixed top-0 left-0 z-20" : "relative")}>
+                <LazyMap />
+              </div>
             </div>
+            <Sidebar />
+
           </div>
-          <Sidebar />
-        </div>
-      </SlideContext.Provider>
+        </SlideContext.Provider>
+      </SlidesControlContext.Provider>
     </>
   );
 }
