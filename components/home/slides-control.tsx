@@ -6,7 +6,7 @@ export default function SlidesControl() {
   const { slides, currentSlideIndex, setCurrentSlideIndex } = useContext(SlidesControlContext);
 
   return (
-    <div className="z-10 bg-slate-600 w-full max-w-64">
+    <div className="z-10 bg-slate-600 w-full max-w-64 overflow-y-auto h-screen">
       <div className="flex flex-col items-center gap-4 p-6">
         {slides.map((slide, index) => (
           <button
@@ -17,7 +17,17 @@ export default function SlidesControl() {
             )}
             onClick={() => setCurrentSlideIndex(index)}
           >
-            <img src="https://picsum.photos/seed/picsum/536/354" alt={`Slide ${index + 1}`} className="w-fit h-fit" />
+            {slide.slideThumbnail && (
+              <img
+                src={slide.slideThumbnail}
+                alt={`Slide ${index + 1}`}
+                className="w-fit h-fit"
+              />
+            )}
+            {/* Fallback image if slide thumbnail is not available */}
+            {!slide.slideThumbnail &&
+              <p className="text-white text-xl">Slide {index + 1}</p>
+            }
           </button>
         ))}
         <button

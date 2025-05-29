@@ -4,11 +4,12 @@ import Toolbar from "@/components/home/toolbar";
 import { cn } from "@/lib/utils";
 import { Layer } from "@/types/layer";
 import dynamic from "next/dynamic";
-import { createContext, Dispatch, SetStateAction, useEffect, useState } from "react";
+import { createContext, Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { HistoryStack } from "./history-stack";
 import { Action } from "@/types/history-stack";
 import Sidebar from "@/components/home/sidebar";
 import SlidesControl from "@/components/home/slides-control";
+import domtoimage from 'dom-to-image';
 
 const LazyMap = dynamic(() => import("@/components/home/map"), {
   ssr: false,
@@ -27,6 +28,7 @@ type Slide = {
   latLng: [number, number],
   mapZoom: number,
   slideHistory: HistoryStack,
+  slideThumbnail?: string | null,
 };
 
 type SlidesControlContextProps = {
@@ -106,6 +108,7 @@ export default function Home() {
   const [currentLayerIndex, setCurrentLayerIndex] = useState<number>(-1);
   const [inspectingLayerId, setInspectingLayerId] = useState<string | null>(null);
   const [slideHistory, setSlideHistory] = useState<HistoryStack>(new HistoryStack());
+  const slideThumbnailRef = useRef<HTMLImageElement | null>(null);
 
   const [slides, setSlides] = useState<Slide[]>([{
     layers: [],
@@ -132,10 +135,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    console.log("Current slide index changed:", currentSlideIndex);
-    console.log(slides.length)
     if (currentSlideIndex >= slides.length) {
-      console.log("Current layer index exceeds the number of layers in the current slide.");
       setSlides((prevSlides) => [
         ...prevSlides,
         {
@@ -174,6 +174,26 @@ export default function Home() {
       });
     }
   }, [layers, latLng, mapZoom, slideHistory]);
+
+  useEffect(() => {
+    if (slideThumbnailRef.current) {
+      domtoimage.toJpeg(slideThumbnailRef.current, { quality: 0.4 })
+        .then((dataUrl) => {
+          console.log(dataUrl);
+          setSlides((prevSlides) => {
+            const updatedSlides = [...prevSlides];
+            updatedSlides[currentSlideIndex] = {
+              ...updatedSlides[currentSlideIndex],
+              slideThumbnail: dataUrl,
+            };
+            return updatedSlides;
+          });
+        })
+        .catch((error) => {
+          console.error("Error generating slide thumbnail:", error);
+        });
+    }
+  }, [layers]);
 
   const undo = () => {
     const lastAction: (Action | null) = slideHistory.undo();
@@ -395,7 +415,7 @@ export default function Home() {
             <SlidesControl />
             <div className="flex flex-col flex-1 h-screen">
               <Toolbar />
-              <div className={cn("mx-auto w-full h-full z-1", isPresenting ? "fixed top-0 left-0 z-20" : "relative")}>
+              <div className={cn("mx-auto w-full h-full z-1 select-none", isPresenting ? "fixed top-0 left-0 z-20" : "relative")} ref={slideThumbnailRef}>
                 <LazyMap />
               </div>
             </div>
