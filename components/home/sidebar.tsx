@@ -45,12 +45,7 @@ function LayerInfoPanel({ layer, isSelected }: { layer: Layer, isSelected: boole
             <div className="mt-2">
               <p className="font-medium">Distance:</p>
               <p className="pl-1 text-xs">
-                {(() => {
-                  const arrowLayer = layer as ArrowLayer;
-                  const dx = arrowLayer.end[1] - arrowLayer.start[1]; // longitude difference
-                  const dy = arrowLayer.end[0] - arrowLayer.start[0]; // latitude difference for distance calculation
-                  return arrowLayer.realLifeDistance!.toFixed(1);
-                })()} m
+                {layer.realLifeDistance!.toFixed(1)} m
               </p>
             </div>
           </div>
