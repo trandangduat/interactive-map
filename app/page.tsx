@@ -23,12 +23,12 @@ export type DrawingStates = {
   fillOpacity?: number,
 };
 
-type Slide = {
-  layers: Layer[],
-  latLng: [number, number],
-  mapZoom: number,
-  slideHistory: HistoryStack,
-  slideThumbnail?: string | null,
+class Slide {
+  layers: Layer[] = [];
+  latLng: [number, number] = [21.03, 105.804];
+  mapZoom: number = 16;
+  slideHistory: HistoryStack = new HistoryStack();
+  slideThumbnail?: string | null = null;
 };
 
 type SlidesControlContextProps = {
@@ -93,10 +93,18 @@ export const SlideContext = createContext<SlideContextProps>({
   redo: () => {},
 });
 
+let count: number = 0;
+
 export default function Home() {
+  // SLIDES CONTROL
+  const slideThumbnailRef = useRef<HTMLImageElement | null>(null);
+  const [slides, setSlides] = useState<Slide[]>([new Slide()]);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
+
+  // CURRENT SLIDE
   const [layers, setLayers] = useState<Layer[]>([]);
   const [latLng, setLatLng] = useState<[number, number]>([21.03, 105.804]);
-  const [mapZoom, setMapZoom] = useState<number>(16); // Default zoom level
+  const [mapZoom, setMapZoom] = useState<number>(16);
   const [drawingStates, setDrawingStates] = useState<DrawingStates>({
     isDrawing: false,
     drawingMode: -1,
@@ -108,20 +116,13 @@ export default function Home() {
   const [currentLayerIndex, setCurrentLayerIndex] = useState<number>(-1);
   const [inspectingLayerId, setInspectingLayerId] = useState<string | null>(null);
   const [slideHistory, setSlideHistory] = useState<HistoryStack>(new HistoryStack());
-  const slideThumbnailRef = useRef<HTMLImageElement | null>(null);
 
-  const [slides, setSlides] = useState<Slide[]>([{
-    layers: [],
-    latLng: [21.03, 105.804],
-    mapZoom: 16,
-    slideHistory: new HistoryStack(),
-  }]);
-  const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
+  console.log("========RERENDER: ", count++, "========");
+  console.log("currentSlideIndex: ", currentSlideIndex);
+  console.log(mapZoom);
+  console.log(slides);
 
   const resetSlide = () => {
-    setLayers([]);
-    setLatLng([21.03, 105.804]);
-    setMapZoom(16);
     setDrawingStates({
       isDrawing: false,
       drawingMode: -1,
@@ -131,35 +132,27 @@ export default function Home() {
     });
     setCurrentLayerIndex(-1);
     setInspectingLayerId(null);
-    setSlideHistory(new HistoryStack());
   };
 
   useEffect(() => {
+    console.log("second")
+    resetSlide();
     if (currentSlideIndex >= slides.length) {
-      setSlides((prevSlides) => [
-        ...prevSlides,
-        {
-          layers: [],
-          latLng: [21.03, 105.804],
-          mapZoom: 16,
-          slideHistory: new HistoryStack(),
-        },
-      ]);
-      resetSlide();
+      setSlides((prevSlides) => [...prevSlides, new Slide()]);
     } else {
       const currentSlide = slides[currentSlideIndex];
       if (currentSlide) {
+        console.log(currentSlide);
         setLayers(currentSlide.layers);
         setLatLng(currentSlide.latLng);
         setMapZoom(currentSlide.mapZoom);
         setSlideHistory(currentSlide.slideHistory);
-      } else {
-        resetSlide();
       }
     }
   }, [currentSlideIndex]);
 
   useEffect(() => {
+    console.log("four" + " " + mapZoom);
     if (currentSlideIndex < slides.length) {
       setSlides((prevSlides) => {
         const updatedSlides = [...prevSlides];
@@ -175,25 +168,27 @@ export default function Home() {
     }
   }, [layers, latLng, mapZoom, slideHistory]);
 
-  useEffect(() => {
-    if (slideThumbnailRef.current) {
-      domtoimage.toJpeg(slideThumbnailRef.current, { quality: 0.4 })
-        .then((dataUrl) => {
-          console.log(dataUrl);
-          setSlides((prevSlides) => {
-            const updatedSlides = [...prevSlides];
-            updatedSlides[currentSlideIndex] = {
-              ...updatedSlides[currentSlideIndex],
-              slideThumbnail: dataUrl,
-            };
-            return updatedSlides;
-          });
-        })
-        .catch((error) => {
-          console.error("Error generating slide thumbnail:", error);
-        });
-    }
-  }, [layers]);
+  // const lastScreenshotTime = useRef<number>(0);
+  // useEffect(() => {
+  //   if (Date.now() - lastScreenshotTime.current < 200) {
+  //     return;
+  //   }
+  //   if (slideThumbnailRef.current) {
+  //     domtoimage.toJpeg(slideThumbnailRef.current, { quality: 0.1 }).then((dataUrl) => {
+  //       lastScreenshotTime.current = Date.now();
+  //       setSlides((prevSlides) => {
+  //         const updatedSlides = [...prevSlides];
+  //         updatedSlides[currentSlideIndex] = {
+  //           ...updatedSlides[currentSlideIndex],
+  //           slideThumbnail: dataUrl,
+  //         };
+  //         return updatedSlides;
+  //       });
+  //     }).catch((error) => {
+  //       console.error("Error generating slide thumbnail:", error);
+  //     });
+  //   }
+  // }, [layers, latLng, mapZoom]);
 
   const undo = () => {
     const lastAction: (Action | null) = slideHistory.undo();

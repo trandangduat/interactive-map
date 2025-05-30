@@ -12,10 +12,13 @@ export default function SlidesControl() {
           <button
             key={index}
             className={cn(
-              "w-full overflow-hidden bg-slate-700 aspect-video rounded-lg flex items-center justify-center border-3 border-slate-500 cursor-pointer shadow-xl shadow-transparent hover:border-slate-300 hover:bg-slate-900 hover:shadow-slate-700",
-              currentSlideIndex === index && "border-slate-300 bg-slate-900 shadow-slate-700"
+              "w-full overflow-hidden bg-slate-700 aspect-video rounded-lg flex items-center justify-center border-3 border-slate-500 cursor-pointer shadow-xl shadow-transparent hover:border-slate-100 hover:bg-slate-900 hover:shadow-slate-700",
+              currentSlideIndex === index && "border-slate-100 bg-slate-900 shadow-slate-700"
             )}
-            onClick={() => setCurrentSlideIndex(index)}
+            onClick={() => {
+              console.log("------first-------");
+              setCurrentSlideIndex(index)
+            }}
           >
             {slide.slideThumbnail && (
               <img

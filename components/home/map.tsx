@@ -5,13 +5,12 @@ import "leaflet/dist/leaflet.css";
 // import "leaflet-defaulticon-compatibility";
 
 import { MapContainer, TileLayer, Marker, Popup, Rectangle, SVGOverlay, useMapEvents, useMap } from "react-leaflet";
-import L, { bounds, LatLngBoundsExpression, LatLngExpression, LatLngTuple, PointExpression } from 'leaflet';
-import { useContext, useEffect, useState } from "react";
-import { SlideContext } from "@/app/page";
+import L, { bounds, latLng, LatLngBoundsExpression, LatLngExpression, LatLngTuple, PointExpression } from 'leaflet';
+import { use, useContext, useEffect, useState } from "react";
+import { SlideContext, SlidesControlContext } from "@/app/page";
 import { v4 as uuidv4 } from "uuid";
 import { Layer } from "@/types/layer";
 import { NewLayerAction } from "@/types/history-stack";
-import { HistoryStack } from "@/app/history-stack";
 
 function DrawingLayer() {
     const [rectOrgin, setRectOrigin] = useState<LatLngTuple | null>();
@@ -227,6 +226,40 @@ const inspectionStyles = `
 }
 `;
 
+function UpdateMapState() {
+    const { latLng, mapZoom, setLatLng, setMapZoom } = useContext(SlideContext);
+
+    const map = useMap();
+    useEffect(() => {
+        const handleMapInteraction = () => {
+            const center: LatLngExpression = map.getCenter();
+            const zoom: number = map.getZoom();
+            // Only update if the values have actually changed to prevent potential loops
+            if (latLng && (center.lat !== latLng[0] || center.lng !== latLng[1] || zoom !== mapZoom)) {
+                setLatLng([center.lat, center.lng]);
+                setMapZoom(zoom);
+            }
+        };
+
+        map.on('moveend', handleMapInteraction);
+        map.on('zoomend', handleMapInteraction);
+
+        return () => {
+            map.off('moveend', handleMapInteraction);
+            map.off('zoomend', handleMapInteraction);
+        };
+    }, [map, latLng, mapZoom, setLatLng, setMapZoom]); // Corrected dependencies
+
+    useEffect(() => {
+        // Fly to the location when latLng or mapZoom from context changes
+        if (latLng && typeof latLng[0] === 'number' && typeof latLng[1] === 'number' && typeof mapZoom === 'number') {
+            map.flyTo(latLng, mapZoom);
+        }
+    }, [latLng, mapZoom, map]); // Changed dependencies to latLng, mapZoom, and map
+
+    return null;
+};
+
 export default function Map() {
     const {
         layers,
@@ -235,6 +268,8 @@ export default function Map() {
         latLng,
         mapZoom,
     } = useContext(SlideContext);
+
+    console.log("MAP RERENDERED", mapZoom);
 
     useEffect(() => {
         if (!document.getElementById('inspection-styles')) {
@@ -252,12 +287,14 @@ export default function Map() {
 
     return (
         <MapContainer
-            // key={drawingStates.isDrawing ? "drawing" : "view"} // Key to force re-render when drawing state changes
+            // key={currentSlideIndex} // Key to force re-render when drawing state changes
             center={latLng}
             zoom={mapZoom}
             style={{ height: "100%", width: "100%" }}
             keyboard={false}
+            doubleClickZoom={false}
         >
+            <UpdateMapState />
             <DrawingLayer />
             <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

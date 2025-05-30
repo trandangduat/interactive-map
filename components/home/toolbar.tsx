@@ -102,7 +102,7 @@ export default function Toolbar() {
   };
 
   return (
-    <div className="mx-auto p-4 z-10 w-full h-fit bg-slate-600 border-1 flex flex-row items-center gap-2">
+    <div className="mx-auto p-4 z-10 w-full h-fit bg-slate-600 flex flex-row items-center gap-2">
       <Button onClick={handleHand}>
         {!drawingStates.isDrawing ? <Check /> : ""}
         Hand
