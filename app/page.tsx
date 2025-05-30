@@ -131,17 +131,18 @@ export default function Home() {
 
   useEffect(() => {
     resetSlide();
-    if (currentSlideIndex >= slides.length) {
-      setSlides((prevSlides) => [...prevSlides, new Slide()]);
-    } else {
-      const currentSlide = slides[currentSlideIndex];
-      if (currentSlide) {
-        setLayers(currentSlide.layers);
-        setLatLng(currentSlide.latLng);
-        setMapZoom(currentSlide.mapZoom);
-        setSlideHistory(currentSlide.slideHistory);
-      }
+    const newSlides = [...slides];
+    if (currentSlideIndex >= newSlides.length) {
+      newSlides.push(new Slide());
     }
+    const currentSlide = newSlides[currentSlideIndex];
+    if (currentSlide) {
+      setLayers(currentSlide.layers);
+      setLatLng(currentSlide.latLng);
+      setMapZoom(currentSlide.mapZoom);
+      setSlideHistory(currentSlide.slideHistory);
+    }
+    setSlides(newSlides);
   }, [currentSlideIndex]);
 
   useEffect(() => {
