@@ -230,6 +230,14 @@ function UpdateMapState() {
     const { latLng, mapZoom, setLatLng, setMapZoom } = useContext(SlideContext);
 
     const map = useMap();
+
+    useEffect(() => {
+        map.flyTo(latLng, mapZoom, {
+            animate: true,
+            duration: 0.2,
+        });
+    }, [latLng, mapZoom]);
+
     useEffect(() => {
         const handleMapInteraction = () => {
             const center: LatLngExpression = map.getCenter();
@@ -248,14 +256,7 @@ function UpdateMapState() {
             map.off('moveend', handleMapInteraction);
             map.off('zoomend', handleMapInteraction);
         };
-    }, [map, latLng, mapZoom, setLatLng, setMapZoom]); // Corrected dependencies
-
-    useEffect(() => {
-        // Fly to the location when latLng or mapZoom from context changes
-        if (latLng && typeof latLng[0] === 'number' && typeof latLng[1] === 'number' && typeof mapZoom === 'number') {
-            map.flyTo(latLng, mapZoom);
-        }
-    }, [latLng, mapZoom, map]); // Changed dependencies to latLng, mapZoom, and map
+    }, [latLng, mapZoom]);
 
     return null;
 };

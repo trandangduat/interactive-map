@@ -117,11 +117,6 @@ export default function Home() {
   const [inspectingLayerId, setInspectingLayerId] = useState<string | null>(null);
   const [slideHistory, setSlideHistory] = useState<HistoryStack>(new HistoryStack());
 
-  console.log("========RERENDER: ", count++, "========");
-  console.log("currentSlideIndex: ", currentSlideIndex);
-  console.log(mapZoom);
-  console.log(slides);
-
   const resetSlide = () => {
     setDrawingStates({
       isDrawing: false,
@@ -135,14 +130,12 @@ export default function Home() {
   };
 
   useEffect(() => {
-    console.log("second")
     resetSlide();
     if (currentSlideIndex >= slides.length) {
       setSlides((prevSlides) => [...prevSlides, new Slide()]);
     } else {
       const currentSlide = slides[currentSlideIndex];
       if (currentSlide) {
-        console.log(currentSlide);
         setLayers(currentSlide.layers);
         setLatLng(currentSlide.latLng);
         setMapZoom(currentSlide.mapZoom);
@@ -152,7 +145,6 @@ export default function Home() {
   }, [currentSlideIndex]);
 
   useEffect(() => {
-    console.log("four" + " " + mapZoom);
     if (currentSlideIndex < slides.length) {
       setSlides((prevSlides) => {
         const updatedSlides = [...prevSlides];
