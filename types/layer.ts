@@ -1,4 +1,4 @@
-import { LatLngBoundsExpression, PathOptions } from "leaflet"
+import { LatLngBoundsExpression, LatLngTuple, PathOptions } from "leaflet"
 
 export interface BaseLayer {
   type: string,
@@ -6,6 +6,7 @@ export interface BaseLayer {
   isPinned: boolean,
   isHidden: boolean,
   realLifeArea?: number, // Area in square meters
+  realLifeDistance?: number, // in meters
 }
 
 export interface RectLayer extends BaseLayer {
@@ -16,15 +17,15 @@ export interface RectLayer extends BaseLayer {
 
 export interface CircleLayer extends BaseLayer {
   type: "circle"
-  center: LatLngBoundsExpression
+  center: LatLngTuple
   radius: number
   pathOptions: PathOptions
 }
 
 export interface ArrowLayer extends BaseLayer {
   type: "arrow"
-  start: LatLngBoundsExpression
-  end: LatLngBoundsExpression
+  start: LatLngTuple
+  end: LatLngTuple
   pathOptions: PathOptions
 }
 

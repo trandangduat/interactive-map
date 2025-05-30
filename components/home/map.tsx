@@ -4,79 +4,155 @@ import "leaflet/dist/leaflet.css";
 // import "leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.webpack.css";
 // import "leaflet-defaulticon-compatibility";
 
-import { MapContainer, TileLayer, Marker, Popup, Rectangle, SVGOverlay, useMapEvents, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Rectangle, Circle, Polyline, SVGOverlay, useMapEvents, useMap } from "react-leaflet";
 import L, { bounds, latLng, LatLngBoundsExpression, LatLngExpression, LatLngTuple, PointExpression } from 'leaflet';
 import { use, useContext, useEffect, useState } from "react";
 import { SlideContext, SlidesControlContext } from "@/app/page";
 import { v4 as uuidv4 } from "uuid";
-import { Layer } from "@/types/layer";
+import { Layer, CircleLayer, ArrowLayer } from "@/types/layer";
 import { NewLayerAction } from "@/types/history-stack";
 
 function DrawingLayer() {
     const [rectOrgin, setRectOrigin] = useState<LatLngTuple | null>();
     const [rectBounds, setRectBounds] = useState<LatLngBoundsExpression | null>();
+    const [circleCenter, setCircleCenter] = useState<LatLngTuple | null>();
+    const [circleRadius, setCircleRadius] = useState<number>(0);
+    const [arrowStart, setArrowStart] = useState<LatLngTuple | null>();
+    const [arrowEnd, setArrowEnd] = useState<LatLngTuple | null>();
     const { setLayers, drawingStates, setInspectingLayerId, slideHistory, setSlideHistory } = useContext(SlideContext);
 
     const map = useMapEvents({
         mousedown: (e) => {
             if (drawingStates.isDrawing) {
-                setRectOrigin([e.latlng.lat, e.latlng.lng]);
+                switch (drawingStates.drawingMode) {
+                    case 0: // Rectangle
+                        setRectOrigin([e.latlng.lat, e.latlng.lng]);
+                        break;
+                    case 1: // Circle
+                        setCircleCenter([e.latlng.lat, e.latlng.lng]);
+                        setCircleRadius(0);
+                        break;
+                    case 2: // Arrow
+                        setArrowStart([e.latlng.lat, e.latlng.lng]);
+                        break;
+                }
             }
         },
         mousemove: (e) => {
-            if (rectOrgin) {
-                setRectBounds([rectOrgin, [e.latlng.lat, e.latlng.lng]]);
+            if (drawingStates.isDrawing) {
+                switch (drawingStates.drawingMode) {
+                    case 0: // Rectangle
+                        if (rectOrgin) {
+                            setRectBounds([rectOrgin, [e.latlng.lat, e.latlng.lng]]);
+                        }
+                        break;
+                    case 1: // Circle
+                        if (circleCenter) {
+                            const radius = map.distance(circleCenter, [e.latlng.lat, e.latlng.lng]);
+                            setCircleRadius(radius);
+                        }
+                        break;
+                    case 2: // Arrow
+                        if (arrowStart) {
+                            setArrowEnd([e.latlng.lat, e.latlng.lng]);
+                        }
+                        break;
+                }
             }
         },
         mouseup: (e) => {
-            if (rectOrgin && rectBounds) {
+            if (drawingStates.isDrawing) {
                 let newLayer: Layer;
                 switch (drawingStates.drawingMode) {
                     case 0: // Rectangle
-                        let rectBounds: LatLngBoundsExpression = [
-                            rectOrgin,
-                            [e.latlng.lat, e.latlng.lng]
-                        ];
-                        newLayer = {
-                            type: "rectangle",
-                            uuid: uuidv4(),
-                            isPinned: false,
-                            isHidden: false,
-                            bounds: rectBounds,
-                            pathOptions: {
-                                color: drawingStates.strokeColor || 'blue',
-                                fillColor: drawingStates.fillColor || 'blue',
-                                fillOpacity: drawingStates.fillOpacity || 0.5,
-                            },
-                        };
-                        newLayer.realLifeArea = map.distance(
-                            rectBounds[0],
-                            [rectBounds[0][0], rectBounds[1][1]]
-                        ) * map.distance(
-                            rectBounds[0],
-                            [rectBounds[1][0], rectBounds[0][1]]
-                        );
-                        setInspectingLayerId(newLayer.uuid);
+                        if (rectOrgin && rectBounds) {
+                            let rectBounds: LatLngBoundsExpression = [
+                                rectOrgin,
+                                [e.latlng.lat, e.latlng.lng]
+                            ];
+                            newLayer = {
+                                type: "rectangle",
+                                uuid: uuidv4(),
+                                isPinned: false,
+                                isHidden: false,
+                                bounds: rectBounds,
+                                pathOptions: {
+                                    color: drawingStates.strokeColor || 'blue',
+                                    fillColor: drawingStates.fillColor || 'blue',
+                                    fillOpacity: drawingStates.fillOpacity || 0.5,
+                                },
+                            };
+                            newLayer.realLifeArea = map.distance(
+                                rectBounds[0],
+                                [rectBounds[0][0], rectBounds[1][1]]
+                            ) * map.distance(
+                                rectBounds[0],
+                                [rectBounds[1][0], rectBounds[0][1]]
+                            );
+                            setInspectingLayerId(newLayer.uuid);
+                        }
                         break;
                     case 1: // Circle
+                        if (circleCenter && circleRadius > 0) {
+                            newLayer = {
+                                type: "circle",
+                                uuid: uuidv4(),
+                                isPinned: false,
+                                isHidden: false,
+                                center: circleCenter,
+                                radius: circleRadius,
+                                pathOptions: {
+                                    color: drawingStates.strokeColor || 'blue',
+                                    fillColor: drawingStates.fillColor || 'blue',
+                                    fillOpacity: drawingStates.fillOpacity || 0.5,
+                                },
+                            };
+                            newLayer.realLifeArea = Math.PI * Math.pow(circleRadius, 2);
+                            setInspectingLayerId(newLayer.uuid);
+                        }
                         break;
                     case 2: // Arrow
+                        if (arrowStart && arrowEnd) {
+                            newLayer = {
+                                type: "arrow",
+                                uuid: uuidv4(),
+                                isPinned: false,
+                                isHidden: false,
+                                start: arrowStart,
+                                end: arrowEnd,
+                                pathOptions: {
+                                    color: drawingStates.strokeColor || 'blue',
+                                    weight: 3,
+                                },
+                            };
+                            newLayer.realLifeDistance = map.distance(arrowStart, arrowEnd);
+                            setInspectingLayerId(newLayer.uuid);
+                        }
                         break;
                     default:
-                        return; // No valid drawing mode selected
+                        return;
                 }
-                setLayers((prevLayers) => [...prevLayers, newLayer]);
-                setSlideHistory(prev => {
-                    const newSlideHistory = prev.copy();
-                    newSlideHistory.push({
-                        type: "NEW_LAYER",
-                        layer: {...newLayer},
-                    } as NewLayerAction);
-                    return newSlideHistory;
-                });
+
+                if (newLayer!) {
+                    setLayers((prevLayers) => [...prevLayers, newLayer]);
+                    setSlideHistory(prev => {
+                        const newSlideHistory = prev.copy();
+                        newSlideHistory.push({
+                            type: "NEW_LAYER",
+                            layer: {...newLayer},
+                        } as NewLayerAction);
+                        return newSlideHistory;
+                    });
+                }
             }
+
+            // Reset all drawing states
             setRectBounds(null);
             setRectOrigin(null);
+            setCircleCenter(null);
+            setCircleRadius(0);
+            setArrowStart(null);
+            setArrowEnd(null);
         },
     });
 
@@ -86,20 +162,70 @@ function DrawingLayer() {
         map.dragging.enable();
     }
 
-    if (!rectOrgin || !rectBounds) {
+    if (!rectOrgin && !circleCenter && !arrowStart) {
         return null;
     }
 
     return (
-        <Rectangle
-            bounds={rectBounds}
-            pathOptions={{
-                color: drawingStates.strokeColor || 'blue',
-                weight: 2,
-                fillColor: drawingStates.fillColor || 'blue',
-                fillOpacity: drawingStates.fillOpacity || 0.5,
-            }}
-        />
+        <>
+            {rectOrgin && rectBounds && drawingStates.drawingMode === 0 && (
+                <Rectangle
+                    bounds={rectBounds}
+                    pathOptions={{
+                        color: drawingStates.strokeColor || 'blue',
+                        weight: 2,
+                        fillColor: drawingStates.fillColor || 'blue',
+                        fillOpacity: drawingStates.fillOpacity || 0.5,
+                    }}
+                />
+            )}
+            {circleCenter && circleRadius > 0 && drawingStates.drawingMode === 1 && (
+                <Circle
+                    center={circleCenter}
+                    radius={circleRadius}
+                    pathOptions={{
+                        color: drawingStates.strokeColor || 'blue',
+                        weight: 2,
+                        fillColor: drawingStates.fillColor || 'blue',
+                        fillOpacity: drawingStates.fillOpacity || 0.5,
+                    }}
+                />
+            )}
+            {arrowStart && arrowEnd && drawingStates.drawingMode === 2 && (() => {
+                const dx = arrowEnd[1] - arrowStart[1]; // longitude difference
+                const dy = arrowStart[0] - arrowEnd[0]; // latitude difference (flipped for screen coordinates)
+                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+                return (
+                    <>
+                        <Polyline
+                            positions={[arrowStart, arrowEnd]}
+                            pathOptions={{
+                                color: drawingStates.strokeColor || 'blue',
+                                weight: 3,
+                            }}
+                        />
+                        <Marker
+                            position={arrowEnd}
+                            icon={L.divIcon({
+                                className: 'arrow-head-marker-preview',
+                                html: `<div style="
+                                    width: 0;
+                                    height: 0;
+                                    border-left: 8px solid transparent;
+                                    border-right: 8px solid transparent;
+                                    border-bottom: 16px solid ${drawingStates.strokeColor || 'blue'};
+                                    transform: rotate(${angle + 90}deg);
+                                    transform-origin: center;
+                                "></div>`,
+                                iconSize: [16, 16],
+                                iconAnchor: [8, 8]
+                            })}
+                        />
+                    </>
+                );
+            })()}
+        </>
     );
 }
 
@@ -199,22 +325,196 @@ function InspectingLayer() {
                     ))}
                 </>
             );
-        break;
 
         case "circle":
-            // Handle circle layer inspection
-            break;
+            const circleLayer = layer as CircleLayer;
+            const circleAreaDisplay = layer.realLifeArea! < 10000
+                ? `${layer.realLifeArea!.toFixed(1)} m²`
+                : `${(layer.realLifeArea! / 10000).toFixed(2)} ha`;
+
+            const radiusDisplay = circleLayer.radius < 1000
+                ? `R: ${circleLayer.radius.toFixed(1)}m`
+                : `R: ${(circleLayer.radius / 1000).toFixed(2)}km`;
+
+            return (
+                <>
+                    <Circle
+                        key={layer.uuid}
+                        center={circleLayer.center}
+                        radius={circleLayer.radius}
+                        pathOptions={{
+                            color: '#3b82f6',
+                            weight: 2,
+                            fillColor: '#3b82f6',
+                            fillOpacity: 0.2,
+                        }}
+                    >
+                        <SVGOverlay bounds={[
+                            [circleLayer.center[0] - 0.001, circleLayer.center[1] - 0.001],
+                            [circleLayer.center[0] + 0.001, circleLayer.center[1] + 0.001]
+                        ]}>
+                            <g>
+                                <rect
+                                    x="50%"
+                                    y="50%"
+                                    width="120"
+                                    height="40"
+                                    fill="white"
+                                    fillOpacity="0.8"
+                                    stroke="#3b82f6"
+                                    strokeWidth="1"
+                                    transform="translate(-60, -20)"
+                                />
+                                <text
+                                    x="50%"
+                                    y="40%"
+                                    dominantBaseline="middle"
+                                    textAnchor="middle"
+                                    fill="#3b82f6"
+                                    fontSize="12"
+                                    fontWeight="bold"
+                                >
+                                    {radiusDisplay}
+                                </text>
+                                <text
+                                    x="50%"
+                                    y="60%"
+                                    dominantBaseline="middle"
+                                    textAnchor="middle"
+                                    fill="#3b82f6"
+                                    fontSize="12"
+                                    fontWeight="bold"
+                                >
+                                    {circleAreaDisplay}
+                                </text>
+                            </g>
+                        </SVGOverlay>
+                        <Marker
+                            position={circleLayer.center}
+                            icon={L.divIcon({
+                                className: 'custom-center-marker',
+                                html: `<div style="
+                                    width: 8px;
+                                    height: 8px;
+                                    background-color: #3b82f6;
+                                    border: 2px solid white;
+                                    border-radius: 50%;
+                                    outline: 1px solid #3b82f6;
+                                "></div>`,
+                                iconSize: [12, 12],
+                                iconAnchor: [6, 6]
+                            })}
+                        >
+                            <Popup>
+                                <div className="text-xs font-mono">
+                                    <div>Center: {circleLayer.center[0].toFixed(6)}, {circleLayer.center[1].toFixed(6)}</div>
+                                    <div>Radius: {circleLayer.radius.toFixed(1)} m</div>
+                                    <div>Area: {circleAreaDisplay}</div>
+                                </div>
+                            </Popup>
+                        </Marker>
+                    </Circle>
+                </>
+            );
 
         case "arrow":
-            // Handle arrow layer inspection
-            break;
+            const arrowLayer = layer as ArrowLayer;
+
+            // Calculate arrow direction
+            const dx = arrowLayer.end[1] - arrowLayer.start[1];
+            const dy = arrowLayer.start[0] - arrowLayer.end[0];
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI; // Convert to degrees for CSS rotation
+
+            const distance = arrowLayer.realLifeDistance!;
+            const distanceDisplay = distance < 1000
+                ? `${distance.toFixed(1)} m`
+                : `${(distance / 1000).toFixed(2)} km`;
+
+            return (
+                <>
+                    <Polyline
+                        key={`${layer.uuid}-line`}
+                        positions={[arrowLayer.start, arrowLayer.end]}
+                        pathOptions={{
+                            color: '#3b82f6',
+                            weight: 3,
+                        }}
+                    >
+                        <Marker
+                            position={arrowLayer.end}
+                            icon={L.divIcon({
+                                className: 'arrow-head-marker-inspection',
+                                html: `<div style="
+                                    width: 0;
+                                    height: 0;
+                                    border-left: 10px solid transparent;
+                                    border-right: 10px solid transparent;
+                                    border-bottom: 20px solid #3b82f6;
+                                    transform: rotate(${angle + 90}deg);
+                                    transform-origin: center;
+                                "></div>`,
+                                iconSize: [20, 20],
+                                iconAnchor: [10, 10]
+                            })}
+                        />
+                        <SVGOverlay bounds={[arrowLayer.start, arrowLayer.end]}>
+                            <g>
+                                <rect
+                                    x="50%"
+                                    y="50%"
+                                    width="80"
+                                    height="25"
+                                    fill="white"
+                                    fillOpacity="0.8"
+                                    stroke="#3b82f6"
+                                    strokeWidth="1"
+                                    transform="translate(-40, -12)"
+                                />
+                                <text
+                                    x="50%"
+                                    y="50%"
+                                    dominantBaseline="middle"
+                                    textAnchor="middle"
+                                    fill="#3b82f6"
+                                    fontSize="14"
+                                    fontWeight="bold"
+                                >
+                                    {distanceDisplay}
+                                </text>
+                            </g>
+                        </SVGOverlay>
+                        <Marker
+                            position={arrowLayer.start}
+                            icon={L.divIcon({
+                                className: 'custom-arrow-marker',
+                                html: `<div style="
+                                    width: 8px;
+                                    height: 8px;
+                                    background-color: #3b82f6;
+                                    border: 2px solid white;
+                                    border-radius: 50%;
+                                "></div>`,
+                                iconSize: [12, 12],
+                                iconAnchor: [6, 6]
+                            })}
+                        >
+                            <Popup>
+                                <div className="text-xs font-mono">
+                                    <div>Start: {arrowLayer.start[0].toFixed(6)}, {arrowLayer.start[1].toFixed(6)}</div>
+                                    <div>End: {arrowLayer.end[0].toFixed(6)}, {arrowLayer.end[1].toFixed(6)}</div>
+                                    <div>Distance: {distanceDisplay}</div>
+                                </div>
+                            </Popup>
+                        </Marker>
+                    </Polyline>
+                </>
+            );
 
         default:
             return null;
     }
 }
 
-// Add custom styles for inspection controls
 const inspectionStyles = `
 .custom-corner-marker div {
     transition: transform 0.2s ease;
@@ -223,6 +523,11 @@ const inspectionStyles = `
     transform: scale(1.4);
     background-color: #3b82f6;
     cursor: grab;
+}
+.arrow-head-marker,
+.arrow-head-marker-inspection,
+.arrow-head-marker-preview {
+    pointer-events: none;
 }
 `;
 
@@ -273,8 +578,6 @@ export default function Map() {
         mapZoom,
     } = useContext(SlideContext);
 
-    console.log("MAP RERENDERED", mapZoom);
-
     useEffect(() => {
         if (!document.getElementById('inspection-styles')) {
             const styleEl = document.createElement('style');
@@ -311,14 +614,61 @@ export default function Map() {
                 if (!layer.isPinned && isPresenting && index > currentLayerIndex) {
                     return null;
                 }
-                if (layer.type === "rectangle") {
-                    return (
-                        <Rectangle
-                            key={index}
-                            bounds={layer.bounds}
-                            pathOptions={layer.pathOptions}
-                        />
-                    )
+
+                switch (layer.type) {
+                    case "rectangle":
+                        return (
+                            <Rectangle
+                                key={index}
+                                bounds={layer.bounds}
+                                pathOptions={layer.pathOptions}
+                            />
+                        );
+                    case "circle":
+                        const circleLayer = layer as CircleLayer;
+                        return (
+                            <Circle
+                                key={index}
+                                center={circleLayer.center}
+                                radius={circleLayer.radius}
+                                pathOptions={circleLayer.pathOptions}
+                            />
+                        );
+                    case "arrow":
+                        const arrowLayer = layer as ArrowLayer;
+
+                        // Calculate arrow direction
+                        const dx = arrowLayer.end[1] - arrowLayer.start[1];
+                        const dy = arrowLayer.start[0] - arrowLayer.end[0];
+                        const angle = Math.atan2(dy, dx) * 180 / Math.PI; // Convert to degrees for CSS rotation
+
+                        return (
+                            <div key={index}>
+                                <Polyline
+                                    positions={[arrowLayer.start, arrowLayer.end]}
+                                    pathOptions={arrowLayer.pathOptions}
+                                />
+                                <Marker
+                                    position={arrowLayer.end}
+                                    icon={L.divIcon({
+                                        className: 'arrow-head-marker',
+                                        html: `<div style="
+                                            width: 0;
+                                            height: 0;
+                                            border-left: 8px solid transparent;
+                                            border-right: 8px solid transparent;
+                                            border-bottom: 16px solid ${arrowLayer.pathOptions?.color || '#000'};
+                                            transform: rotate(${angle + 90}deg);
+                                            transform-origin: center;
+                                        "></div>`,
+                                        iconSize: [16, 16],
+                                        iconAnchor: [8, 8]
+                                    })}
+                                />
+                            </div>
+                        );
+                    default:
+                        return null;
                 }
             })}
             <InspectingLayer />

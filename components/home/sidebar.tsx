@@ -1,6 +1,6 @@
 import { ArrowLayer, CircleLayer, Layer, RectLayer } from "@/types/layer";
 import { cn } from "@/lib/utils";
-import { ChevronDown, ChevronUp, Eye, EyeOff, Pin, PinOff, Plus, Square, SquarePlus, Trash2 } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronUp, Circle, Eye, EyeOff, Pin, PinOff, Plus, Square, SquarePlus, Trash2 } from "lucide-react";
 import { JSX, useContext, useEffect, useRef, useState } from "react";
 import { SlideContext } from "@/app/page";
 import { DeleteLayerAction, HideLayerAction, PinLayerAction, ReorderLayerAction, UnHideLayerAction, UnPinLayerAction } from "@/types/history-stack";
@@ -24,11 +24,17 @@ function LayerInfoPanel({ layer, isSelected }: { layer: Layer, isSelected: boole
         )}
 
         {layer.type === "circle" && (
-          <div className="mt-2">
-            <p className="font-medium">Position:</p>
-            <p className="pl-2 text-xs">Center: {JSON.stringify((layer as CircleLayer).center)}</p>
-            <p className="pl-2">Radius: {(layer as CircleLayer).radius}m</p>
-          </div>
+          <>
+            <div className="">
+              <p className="font-medium">Position:</p>
+              <p className="pl-2 text-xs">Center: {JSON.stringify((layer as CircleLayer).center)}</p>
+              <p className="pl-2 text-xs">Radius: {(layer as CircleLayer).radius.toFixed(1)}m</p>
+            </div>
+            <div className="mt-2">
+              <p className="font-medium">Real life area:</p>
+              <p className="pl-1 text-xs">{layer.realLifeArea?.toFixed(4)} m²</p>
+            </div>
+          </>
         )}
 
         {layer.type === "arrow" && (
@@ -36,6 +42,17 @@ function LayerInfoPanel({ layer, isSelected }: { layer: Layer, isSelected: boole
             <p className="font-medium">Position:</p>
             <p className="pl-2 text-xs">Start: {JSON.stringify((layer as ArrowLayer).start)}</p>
             <p className="pl-2 text-xs">End: {JSON.stringify((layer as ArrowLayer).end)}</p>
+            <div className="mt-2">
+              <p className="font-medium">Distance:</p>
+              <p className="pl-1 text-xs">
+                {(() => {
+                  const arrowLayer = layer as ArrowLayer;
+                  const dx = arrowLayer.end[1] - arrowLayer.start[1]; // longitude difference
+                  const dy = arrowLayer.end[0] - arrowLayer.start[0]; // latitude difference for distance calculation
+                  return arrowLayer.realLifeDistance!.toFixed(1);
+                })()} m
+              </p>
+            </div>
           </div>
         )}
 
@@ -196,6 +213,15 @@ function LayersPane() {
       let layerIcon: JSX.Element;
       switch (layer.type) {
         case "rectangle":
+          layerIcon = <Square size={16} />;
+          break;
+        case "circle":
+          layerIcon = <Circle size={16} />;
+          break;
+        case "arrow":
+          layerIcon = <ArrowRight size={16} />;
+          break;
+        default:
           layerIcon = <Square size={16} />;
           break;
       }
@@ -372,10 +398,10 @@ export default function Sidebar() {
 
   return (
     <div className="bg-slate-600 text-white w-90 flex flex-col justify-between h-screen" onClick={() => setInspectingLayerId(null)}>
-      <div className="basis-2/3 flex flex-col overflow-hidden"> {/* Add flex flex-col and overflow-hidden */}
+      <div className="basis-2/3 flex flex-col overflow-hidden">
         <LayersPane />
       </div>
-      <div className="basis-1/3 flex flex-col overflow-hidden border-t border-slate-400"> {/* Add flex flex-col and overflow-hidden */}
+      <div className="basis-1/3 flex flex-col overflow-hidden border-t border-slate-400">
         <HistoryPane />
       </div>
     </div>
