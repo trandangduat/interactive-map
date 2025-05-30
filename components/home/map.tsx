@@ -227,16 +227,19 @@ const inspectionStyles = `
 `;
 
 function UpdateMapState() {
-    const { latLng, mapZoom, setLatLng, setMapZoom } = useContext(SlideContext);
+    const { latLng, mapZoom, setLatLng, setMapZoom, mapViewWorkaround } = useContext(SlideContext);
 
     const map = useMap();
 
     useEffect(() => {
+        // Only update the map view after the latLng and mapZoom have been set to the current slide's values (when mapViewWorkaround increases)
+        if (map.getCenter().equals(latLng) && map.getZoom() === mapZoom) {
+            return;
+        }
         map.flyTo(latLng, mapZoom, {
-            animate: true,
             duration: 0.2,
         });
-    }, [latLng, mapZoom]);
+    }, [mapViewWorkaround]);
 
     useEffect(() => {
         const handleMapInteraction = () => {

@@ -54,6 +54,7 @@ type SlideContextProps = {
   mapZoom: number,
   inspectingLayerId: string | null,
   slideHistory: HistoryStack,
+  mapViewWorkaround?: number,
   setLayers: Dispatch<SetStateAction<Layer[]>>,
   setLatLng: Dispatch<SetStateAction<[number, number]>>,
   setIsPresenting: Dispatch<SetStateAction<boolean>>,
@@ -81,6 +82,7 @@ export const SlideContext = createContext<SlideContextProps>({
   mapZoom: 16,
   inspectingLayerId: null,
   slideHistory: new HistoryStack(),
+  mapViewWorkaround: 0,
   setLayers: () => {},
   setLatLng: () => {},
   setIsPresenting: () => {},
@@ -92,8 +94,6 @@ export const SlideContext = createContext<SlideContextProps>({
   undo: () => {},
   redo: () => {},
 });
-
-let count: number = 0;
 
 export default function Home() {
   // SLIDES CONTROL
@@ -116,6 +116,7 @@ export default function Home() {
   const [currentLayerIndex, setCurrentLayerIndex] = useState<number>(-1);
   const [inspectingLayerId, setInspectingLayerId] = useState<string | null>(null);
   const [slideHistory, setSlideHistory] = useState<HistoryStack>(new HistoryStack());
+  const [mapViewWorkaround, setMapViewWorkaround] = useState<number>(0);
 
   const resetSlide = () => {
     setDrawingStates({
@@ -141,6 +142,7 @@ export default function Home() {
       setLatLng(currentSlide.latLng);
       setMapZoom(currentSlide.mapZoom);
       setSlideHistory(currentSlide.slideHistory);
+      setMapViewWorkaround(prev => prev + 1);
     }
     setSlides(newSlides);
   }, [currentSlideIndex]);
@@ -389,6 +391,7 @@ export default function Home() {
           mapZoom,
           inspectingLayerId,
           slideHistory,
+          mapViewWorkaround,
           setLayers,
           setLatLng,
           setIsPresenting,
