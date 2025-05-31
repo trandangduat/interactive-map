@@ -5,9 +5,8 @@ import "leaflet/dist/leaflet.css";
 // import "leaflet-defaulticon-compatibility";
 
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
-import { LatLngExpression } from 'leaflet';
-import { use, useContext, useEffect } from "react";
-import { MapViewContext, SlidesControlContext } from "@/app/page";
+import { useContext, useEffect } from "react";
+import { SlidesControlContext } from "@/app/page";
 import DrawingLayer from "./drawing-layer";
 import InspectingLayer from "./inspecting-layer";
 import Layers from "./layers";
@@ -28,10 +27,8 @@ const inspectionStyles = `
 }
 `;
 
-function UpdateMapState() {
+function UpdateMapState({ mapViewWorkaround } : { mapViewWorkaround: number }) {
     const { slides, setSlides, currentSlideIndex, previousSlideIndex } = useContext(SlidesControlContext);
-
-    const { mapViewWorkaround } = useContext(MapViewContext);
 
     const map = useMap();
 
@@ -63,7 +60,7 @@ function UpdateMapState() {
     return null;
 };
 
-export default function Map() {
+export default function Map({ mapViewWorkaround } : { mapViewWorkaround: number }) {
     useEffect(() => {
         if (!document.getElementById('inspection-styles')) {
             const styleEl = document.createElement('style');
@@ -87,7 +84,7 @@ export default function Map() {
             keyboard={false}
             doubleClickZoom={false}
         >
-            <UpdateMapState />
+            <UpdateMapState mapViewWorkaround={mapViewWorkaround} />
             <DrawingLayer />
             <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

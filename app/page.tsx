@@ -4,7 +4,7 @@ import Toolbar from "@/components/home/toolbar";
 import { cn } from "@/lib/utils";
 import { Layer } from "@/types/layer";
 import dynamic from "next/dynamic";
-import { createContext, Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import { createContext, Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HistoryStack } from "./history-stack";
 import { Action } from "@/types/history-stack";
 import Sidebar from "@/components/home/sidebar";
@@ -61,9 +61,6 @@ export const PresentationContext = createContext<{ isPresenting: boolean; setIsP
 );
 export const HistoryContext = createContext<{ slideHistory: HistoryStack; setSlideHistory: Dispatch<SetStateAction<HistoryStack>>; undo: () => void; redo: () => void }>(
   { slideHistory: new HistoryStack(), setSlideHistory: () => {}, undo: () => {}, redo: () => {} }
-);
-export const MapViewContext = createContext<{ mapViewWorkaround: number }>(
-  { mapViewWorkaround: 0 }
 );
 
 export default function Home() {
@@ -151,7 +148,7 @@ export default function Home() {
   //   }
   // }, [layers, latLng, mapZoom]);
 
-  const undo = () => {
+  const undo = useCallback(() => {
     const lastAction: (Action | null) = slideHistory.undo();
     if (lastAction) {
       switch (lastAction.type) {
@@ -211,9 +208,9 @@ export default function Home() {
           break;
       }
     }
-  };
+  }, [slideHistory]);
 
-  const redo = () => {
+  const redo = useCallback(() => {
     const lastAction: (Action | null) = slideHistory.redo();
     if (lastAction) {
       switch (lastAction.type) {
@@ -269,7 +266,7 @@ export default function Home() {
           break;
       }
     }
-  };
+  }, [slideHistory]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -340,28 +337,61 @@ export default function Home() {
     }
   }, [slideHistory]);
 
+  const slidesControlValue = useMemo(() => ({
+    slides,
+    currentSlideIndex,
+    previousSlideIndex,
+    setSlides,
+    setCurrentSlideIndex,
+    setPreviousSlideIndex,
+  }), [slides, currentSlideIndex, previousSlideIndex]);
+
+  const presentationValue = useMemo(() => ({
+    isPresenting,
+    setIsPresenting,
+    currentLayerIndex,
+    setCurrentLayerIndex,
+    inspectingLayerId,
+    setInspectingLayerId,
+  }), [isPresenting, currentLayerIndex, inspectingLayerId]);
+
+  const historyValue = useMemo(() => ({
+    slideHistory,
+    setSlideHistory,
+    undo,
+    redo,
+  }), [slideHistory, undo, redo]);
+
+  const layersValue = useMemo(() => ({
+    layers,
+    setLayers,
+  }), [layers]);
+
+  const drawingStatesValue = useMemo(() => ({
+    drawingStates,
+    setDrawingStates,
+  }), [drawingStates]);
+
   return (
     <>
-      <SlidesControlContext.Provider value={{ slides, currentSlideIndex, previousSlideIndex, setSlides, setCurrentSlideIndex, setPreviousSlideIndex }}>
-        <LayersContext.Provider value={{ layers, setLayers }}>
-          <DrawingStatesContext.Provider value={{ drawingStates, setDrawingStates }}>
-            <PresentationContext.Provider value={{ isPresenting, setIsPresenting, currentLayerIndex, setCurrentLayerIndex, inspectingLayerId, setInspectingLayerId }}>
-              <HistoryContext.Provider value={{ slideHistory, setSlideHistory, undo, redo }}>
-                <MapViewContext.Provider value={{ mapViewWorkaround }}>
+      <SlidesControlContext.Provider value={slidesControlValue}>
+        <LayersContext.Provider value={ layersValue }>
+            <PresentationContext.Provider value={ presentationValue }>
+              <HistoryContext.Provider value={ historyValue }>
                   <div className="flex flex-row mx-auto">
                     <SlidesControl />
                     <div className="flex flex-col flex-1 h-screen">
-                      <Toolbar />
-                      <div className={cn("mx-auto w-full h-full z-1 select-none", isPresenting ? "fixed top-0 left-0 z-20" : "relative")} ref={slideThumbnailRef}>
-                        <LazyMap />
-                      </div>
+                      <DrawingStatesContext.Provider value={ drawingStatesValue }>
+                        <Toolbar />
+                          <div className={cn("mx-auto w-full h-full z-1 select-none", isPresenting ? "fixed top-0 left-0 z-20" : "relative")} ref={slideThumbnailRef}>
+                            <LazyMap mapViewWorkaround={mapViewWorkaround} />
+                          </div>
+                      </DrawingStatesContext.Provider>
                     </div>
                     <Sidebar />
                   </div>
-                </MapViewContext.Provider>
               </HistoryContext.Provider>
             </PresentationContext.Provider>
-          </DrawingStatesContext.Provider>
         </LayersContext.Provider>
       </SlidesControlContext.Provider>
     </>

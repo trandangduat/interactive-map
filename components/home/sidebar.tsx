@@ -1,9 +1,9 @@
 import { ArrowLayer, CircleLayer, Layer, RectLayer } from "@/types/layer";
 import { cn } from "@/lib/utils";
 import { ArrowRight, ChevronDown, ChevronUp, Circle, Eye, EyeOff, Pin, PinOff, Plus, Square, SquarePlus, Trash2 } from "lucide-react";
-import { JSX, useContext, useEffect, useRef, useState } from "react";
+import { JSX, memo, useContext, useEffect, useRef, useState } from "react";
 import { HistoryContext, LayersContext, PresentationContext } from "@/app/page";
-import { DeleteLayerAction, HideLayerAction, PinLayerAction, ReorderLayerAction, UnHideLayerAction, UnPinLayerAction } from "@/types/history-stack";
+import { DeleteLayerAction } from "@/types/history-stack";
 
 // Layer info display component
 function LayerInfoPanel({ layer, isSelected }: { layer: Layer, isSelected: boolean }) {
@@ -393,7 +393,7 @@ function HistoryPane() {
   )
 }
 
-export default function Sidebar() {
+function Sidebar() {
   const { setInspectingLayerId } = useContext(PresentationContext);
 
   return (
@@ -407,3 +407,5 @@ export default function Sidebar() {
     </div>
   );
 }
+
+export default memo(Sidebar);
