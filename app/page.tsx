@@ -49,47 +49,22 @@ export const SlidesControlContext = createContext<SlidesControlContextProps>({
   setPreviousSlideIndex: () => {},
 });
 
-type SlideContextProps = {
-  layers: Layer[],
-  currentLayerIndex: number,
-  isPresenting: boolean,
-  drawingStates: DrawingStates,
-  inspectingLayerId: string | null,
-  slideHistory: HistoryStack,
-  mapViewWorkaround?: number,
-  setLayers: Dispatch<SetStateAction<Layer[]>>,
-  setIsPresenting: Dispatch<SetStateAction<boolean>>,
-  setCurrentLayerIndex: Dispatch<SetStateAction<number>>,
-  setDrawingStates: Dispatch<SetStateAction<DrawingStates>>,
-  setInspectingLayerId: Dispatch<SetStateAction<string | null>>,
-  setSlideHistory: Dispatch<SetStateAction<HistoryStack>>,
-  undo: () => void,
-  redo: () => void,
-};
-
-export const SlideContext = createContext<SlideContextProps>({
-  layers: [],
-  currentLayerIndex: -1,
-  isPresenting: false,
-  drawingStates: {
-    isDrawing: false,
-    drawingMode: -1,
-    strokeColor: "#000000",
-    fillColor: "#000000",
-    fillOpacity: 0.2,
-  },
-  inspectingLayerId: null,
-  slideHistory: new HistoryStack(),
-  mapViewWorkaround: 0,
-  setLayers: () => {},
-  setIsPresenting: () => {},
-  setCurrentLayerIndex: () => {},
-  setDrawingStates: () => {},
-  setInspectingLayerId: () => {},
-  setSlideHistory: () => {},
-  undo: () => {},
-  redo: () => {},
-});
+// Added separate contexts to reduce unnecessary rerenders
+export const LayersContext = createContext<{ layers: Layer[]; setLayers: Dispatch<SetStateAction<Layer[]>> }>(
+  { layers: [], setLayers: () => {} }
+);
+export const DrawingStatesContext = createContext<{ drawingStates: DrawingStates; setDrawingStates: Dispatch<SetStateAction<DrawingStates>> }>(
+  { drawingStates: { isDrawing: false, drawingMode: -1, strokeColor: "#000000", fillColor: "#000000", fillOpacity: 0.2 }, setDrawingStates: () => {} }
+);
+export const PresentationContext = createContext<{ isPresenting: boolean; setIsPresenting: Dispatch<SetStateAction<boolean>>; currentLayerIndex: number; setCurrentLayerIndex: Dispatch<SetStateAction<number>>; inspectingLayerId: string | null; setInspectingLayerId: Dispatch<SetStateAction<string | null>> }>(
+  { isPresenting: false, setIsPresenting: () => {}, currentLayerIndex: -1, setCurrentLayerIndex: () => {}, inspectingLayerId: null, setInspectingLayerId: () => {} }
+);
+export const HistoryContext = createContext<{ slideHistory: HistoryStack; setSlideHistory: Dispatch<SetStateAction<HistoryStack>>; undo: () => void; redo: () => void }>(
+  { slideHistory: new HistoryStack(), setSlideHistory: () => {}, undo: () => {}, redo: () => {} }
+);
+export const MapViewContext = createContext<{ mapViewWorkaround: number }>(
+  { mapViewWorkaround: 0 }
+);
 
 export default function Home() {
   // SLIDES CONTROL
@@ -367,42 +342,27 @@ export default function Home() {
 
   return (
     <>
-      <SlidesControlContext.Provider value={{
-          slides,
-          currentSlideIndex,
-          previousSlideIndex,
-          setSlides,
-          setCurrentSlideIndex,
-          setPreviousSlideIndex,
-      }}>
-        <SlideContext.Provider value={{
-          layers,
-          currentLayerIndex,
-          isPresenting,
-          drawingStates,
-          inspectingLayerId,
-          slideHistory,
-          mapViewWorkaround,
-          setLayers,
-          setIsPresenting,
-          setCurrentLayerIndex,
-          setDrawingStates,
-          setInspectingLayerId,
-          setSlideHistory,
-          undo, redo,
-        }}>
-          <div className="flex flex-row mx-auto">
-            <SlidesControl />
-            <div className="flex flex-col flex-1 h-screen">
-              <Toolbar />
-              <div className={cn("mx-auto w-full h-full z-1 select-none", isPresenting ? "fixed top-0 left-0 z-20" : "relative")} ref={slideThumbnailRef}>
-                <LazyMap />
-              </div>
-            </div>
-            <Sidebar />
-
-          </div>
-        </SlideContext.Provider>
+      <SlidesControlContext.Provider value={{ slides, currentSlideIndex, previousSlideIndex, setSlides, setCurrentSlideIndex, setPreviousSlideIndex }}>
+        <LayersContext.Provider value={{ layers, setLayers }}>
+          <DrawingStatesContext.Provider value={{ drawingStates, setDrawingStates }}>
+            <PresentationContext.Provider value={{ isPresenting, setIsPresenting, currentLayerIndex, setCurrentLayerIndex, inspectingLayerId, setInspectingLayerId }}>
+              <HistoryContext.Provider value={{ slideHistory, setSlideHistory, undo, redo }}>
+                <MapViewContext.Provider value={{ mapViewWorkaround }}>
+                  <div className="flex flex-row mx-auto">
+                    <SlidesControl />
+                    <div className="flex flex-col flex-1 h-screen">
+                      <Toolbar />
+                      <div className={cn("mx-auto w-full h-full z-1 select-none", isPresenting ? "fixed top-0 left-0 z-20" : "relative")} ref={slideThumbnailRef}>
+                        <LazyMap />
+                      </div>
+                    </div>
+                    <Sidebar />
+                  </div>
+                </MapViewContext.Provider>
+              </HistoryContext.Provider>
+            </PresentationContext.Provider>
+          </DrawingStatesContext.Provider>
+        </LayersContext.Provider>
       </SlidesControlContext.Provider>
     </>
   );

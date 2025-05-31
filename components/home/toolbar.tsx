@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { Button } from "../ui/button";
-import { SlideContext } from "@/app/page";
+import { DrawingStatesContext, HistoryContext, PresentationContext } from "@/app/page";
 import { Check, Redo, Undo } from "lucide-react";
 
 const basicColors = [
@@ -19,7 +19,7 @@ const basicColors = [
 ];
 
 function ColorPicker() {
-  const { drawingStates, setDrawingStates } = useContext(SlideContext);
+  const { drawingStates, setDrawingStates } = useContext(DrawingStatesContext);
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -47,15 +47,12 @@ function ColorPicker() {
 
 export default function Toolbar() {
   const {
-    drawingStates,
-    setIsPresenting,
-    setCurrentLayerIndex,
-    setDrawingStates,
-    setInspectingLayerId,
     undo,
     redo,
     slideHistory
-  } = useContext(SlideContext);
+  } = useContext(HistoryContext);
+  const { drawingStates, setDrawingStates } = useContext(DrawingStatesContext);
+  const { setIsPresenting, setCurrentLayerIndex, setInspectingLayerId } = useContext(PresentationContext);
 
   const handleRect = () => {
     setDrawingStates(prev => ({

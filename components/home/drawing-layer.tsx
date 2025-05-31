@@ -1,7 +1,7 @@
 import { Marker, Rectangle, Circle, Polyline, useMapEvents } from "react-leaflet";
 import L, { LatLngBoundsExpression, LatLngTuple, PointExpression } from 'leaflet';
 import { useContext, useState } from "react";
-import { SlideContext } from "@/app/page";
+import { DrawingStatesContext, HistoryContext, LayersContext, PresentationContext } from "@/app/page";
 import { v4 as uuidv4 } from "uuid";
 import { Layer } from "@/types/layer";
 import { NewLayerAction } from "@/types/history-stack";
@@ -14,7 +14,11 @@ export default function DrawingLayer() {
     const [circleRadius, setCircleRadius] = useState<number>(0);
     const [arrowStart, setArrowStart] = useState<LatLngTuple | null>();
     const [arrowEnd, setArrowEnd] = useState<LatLngTuple | null>();
-    const { setLayers, drawingStates, setInspectingLayerId, slideHistory, setSlideHistory } = useContext(SlideContext);
+
+    const { setSlideHistory } = useContext(HistoryContext);
+    const { setLayers } = useContext(LayersContext)
+    const { drawingStates } = useContext(DrawingStatesContext);
+    const { setInspectingLayerId } = useContext(PresentationContext);
 
     const map = useMapEvents({
         mousedown: (e) => {
@@ -129,67 +133,76 @@ export default function DrawingLayer() {
                 }
 
                 if (newLayer!) {
-                    // Create 100 other objects with latlng near to the first object
-                    const LIMIT:number = 100;
-                    setLayers((prevLayers) => {
-                        const newLayers = [newLayer];
-                        if (newLayer.type === "rectangle" && Array.isArray(newLayer.bounds)) {
-                            const [origin, corner] = newLayer.bounds as [LatLngTuple, LatLngTuple];
-                            for (let i = 1; i <= LIMIT; i++) {
-                                const offset = i * 0.0005;
-                                const shiftedOrigin: LatLngTuple = [origin[0] + offset, origin[1] + offset];
-                                const shiftedCorner: LatLngTuple = [corner[0] + offset, corner[1] + offset];
-                                newLayers.push({
-                                    ...newLayer,
-                                    uuid: uuidv4(),
-                                    bounds: [shiftedOrigin, shiftedCorner],
-                                });
-                            }
-                        } else if (newLayer.type === "circle" && newLayer.center) {
-                            for (let i = 1; i <= LIMIT; i++) {
-                                const offset = i * 0.0005;
-                                const shiftedCenter: LatLngTuple = [
-                                    newLayer.center[0] + offset,
-                                    newLayer.center[1] + offset,
-                                ];
-                                newLayers.push({
-                                    ...newLayer,
-                                    uuid: uuidv4(),
-                                    center: shiftedCenter,
-                                });
-                            }
-                        } else if (newLayer.type === "arrow" && newLayer.start && newLayer.end) {
-                            for (let i = 1; i <= LIMIT; i++) {
-                                const offset = i * 0.0005;
-                                const shiftedStart: LatLngTuple = [
-                                    newLayer.start[0] + offset,
-                                    newLayer.start[1] + offset,
-                                ];
-                                const shiftedEnd: LatLngTuple = [
-                                    newLayer.end[0] + offset,
-                                    newLayer.end[1] + offset,
-                                ];
-                                newLayers.push({
-                                    ...newLayer,
-                                    uuid: uuidv4(),
-                                    start: shiftedStart,
-                                    end: shiftedEnd,
-                                });
-                            }
-                        }
-                        return [...prevLayers, ...newLayers];
-                    });
+                    setLayers((prevLayers) => [...prevLayers, newLayer]);
                     setSlideHistory((prev: HistoryStack) => {
                         const newSlideHistory = prev.copy();
-                        // Add history for the original layer and the 100 new ones
-                        for (let i = 0; i < LIMIT + 1; i++) {
-                            newSlideHistory.push({
-                                type: "NEW_LAYER",
-                                layer: { ...newLayer, uuid: i === 0 ? newLayer.uuid : uuidv4() },
-                            } as NewLayerAction);
-                        }
+                        newSlideHistory.push({
+                            type: "NEW_LAYER",
+                            layer: {...newLayer},
+                        } as NewLayerAction);
                         return newSlideHistory;
                     });
+                    // // Create 100 other objects with latlng near to the first object
+                    // const LIMIT:number = 100;
+                    // setLayers((prevLayers) => {
+                    //     const newLayers = [newLayer];
+                    //     if (newLayer.type === "rectangle" && Array.isArray(newLayer.bounds)) {
+                    //         const [origin, corner] = newLayer.bounds as [LatLngTuple, LatLngTuple];
+                    //         for (let i = 1; i <= LIMIT; i++) {
+                    //             const offset = i * 0.0005;
+                    //             const shiftedOrigin: LatLngTuple = [origin[0] + offset, origin[1] + offset];
+                    //             const shiftedCorner: LatLngTuple = [corner[0] + offset, corner[1] + offset];
+                    //             newLayers.push({
+                    //                 ...newLayer,
+                    //                 uuid: uuidv4(),
+                    //                 bounds: [shiftedOrigin, shiftedCorner],
+                    //             });
+                    //         }
+                    //     } else if (newLayer.type === "circle" && newLayer.center) {
+                    //         for (let i = 1; i <= LIMIT; i++) {
+                    //             const offset = i * 0.0005;
+                    //             const shiftedCenter: LatLngTuple = [
+                    //                 newLayer.center[0] + offset,
+                    //                 newLayer.center[1] + offset,
+                    //             ];
+                    //             newLayers.push({
+                    //                 ...newLayer,
+                    //                 uuid: uuidv4(),
+                    //                 center: shiftedCenter,
+                    //             });
+                    //         }
+                    //     } else if (newLayer.type === "arrow" && newLayer.start && newLayer.end) {
+                    //         for (let i = 1; i <= LIMIT; i++) {
+                    //             const offset = i * 0.0005;
+                    //             const shiftedStart: LatLngTuple = [
+                    //                 newLayer.start[0] + offset,
+                    //                 newLayer.start[1] + offset,
+                    //             ];
+                    //             const shiftedEnd: LatLngTuple = [
+                    //                 newLayer.end[0] + offset,
+                    //                 newLayer.end[1] + offset,
+                    //             ];
+                    //             newLayers.push({
+                    //                 ...newLayer,
+                    //                 uuid: uuidv4(),
+                    //                 start: shiftedStart,
+                    //                 end: shiftedEnd,
+                    //             });
+                    //         }
+                    //     }
+                    //     return [...prevLayers, ...newLayers];
+                    // });
+                    // setSlideHistory((prev: HistoryStack) => {
+                    //     const newSlideHistory = prev.copy();
+                    //     // Add history for the original layer and the 100 new ones
+                    //     for (let i = 0; i < LIMIT + 1; i++) {
+                    //         newSlideHistory.push({
+                    //             type: "NEW_LAYER",
+                    //             layer: { ...newLayer, uuid: i === 0 ? newLayer.uuid : uuidv4() },
+                    //         } as NewLayerAction);
+                    //     }
+                    //     return newSlideHistory;
+                    // });
                 }
             }
 

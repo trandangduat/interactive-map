@@ -7,7 +7,7 @@ import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import { LatLngExpression } from 'leaflet';
 import { use, useContext, useEffect } from "react";
-import { SlideContext, SlidesControlContext } from "@/app/page";
+import { MapViewContext, SlidesControlContext } from "@/app/page";
 import DrawingLayer from "./drawing-layer";
 import InspectingLayer from "./inspecting-layer";
 import Layers from "./layers";
@@ -29,14 +29,9 @@ const inspectionStyles = `
 `;
 
 function UpdateMapState() {
-    const {
-        slides,
-        setSlides,
-        currentSlideIndex,
-        previousSlideIndex
-    } = useContext(SlidesControlContext);
+    const { slides, setSlides, currentSlideIndex, previousSlideIndex } = useContext(SlidesControlContext);
 
-    const { mapViewWorkaround } = useContext(SlideContext);
+    const { mapViewWorkaround } = useContext(MapViewContext);
 
     const map = useMap();
 

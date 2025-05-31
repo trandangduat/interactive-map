@@ -1,11 +1,12 @@
 import { Marker, Popup, Rectangle, Circle, Polyline, SVGOverlay } from "react-leaflet";
 import L, { LatLngTuple } from 'leaflet';
 import { useContext } from "react";
-import { SlideContext } from "@/app/page";
+import { LayersContext, PresentationContext } from "@/app/page";
 import { CircleLayer, ArrowLayer } from "@/types/layer";
 
 export default function InspectingLayer() {
-    const { inspectingLayerId, layers, isPresenting } = useContext(SlideContext);
+    const { inspectingLayerId, isPresenting } = useContext(PresentationContext);
+    const { layers } = useContext(LayersContext);
 
     if (isPresenting) {
         return null;

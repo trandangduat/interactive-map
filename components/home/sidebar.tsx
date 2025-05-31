@@ -2,7 +2,7 @@ import { ArrowLayer, CircleLayer, Layer, RectLayer } from "@/types/layer";
 import { cn } from "@/lib/utils";
 import { ArrowRight, ChevronDown, ChevronUp, Circle, Eye, EyeOff, Pin, PinOff, Plus, Square, SquarePlus, Trash2 } from "lucide-react";
 import { JSX, useContext, useEffect, useRef, useState } from "react";
-import { SlideContext } from "@/app/page";
+import { HistoryContext, LayersContext, PresentationContext } from "@/app/page";
 import { DeleteLayerAction, HideLayerAction, PinLayerAction, ReorderLayerAction, UnHideLayerAction, UnPinLayerAction } from "@/types/history-stack";
 
 // Layer info display component
@@ -84,13 +84,10 @@ function LayerInfoPanel({ layer, isSelected }: { layer: Layer, isSelected: boole
 }
 
 function LayersPane() {
-  const {
-    layers,
-    setLayers,
-    inspectingLayerId,
-    setInspectingLayerId,
-    setSlideHistory,
-  } = useContext(SlideContext);
+  const { layers, setLayers } = useContext(LayersContext);
+  const { inspectingLayerId, setInspectingLayerId } = useContext(PresentationContext);
+  const { setSlideHistory } = useContext(HistoryContext);
+
   const [expandedLayers, setExpandedLayers] = useState<Record<string, boolean>>({});
   const [dragStartIndex, setDragStartIndex] = useState<number | null>(null);
   const [draggedOverIndex, setDraggedOverIndex] = useState<number | null>(null);
@@ -312,7 +309,7 @@ function HistoryPane() {
     slideHistory,
     undo,
     redo
-  } = useContext(SlideContext);
+  } = useContext(HistoryContext);
 
   const historyBoardRef = useRef<HTMLDivElement | null>(null);
 
@@ -397,7 +394,7 @@ function HistoryPane() {
 }
 
 export default function Sidebar() {
-  const { setInspectingLayerId } = useContext(SlideContext);
+  const { setInspectingLayerId } = useContext(PresentationContext);
 
   return (
     <div className="bg-slate-600 text-white w-90 flex flex-col justify-between h-screen" onClick={() => setInspectingLayerId(null)}>
