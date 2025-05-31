@@ -69,11 +69,6 @@ function UpdateMapState() {
 };
 
 export default function Map() {
-    const {
-        latLng,
-        mapZoom,
-    } = useContext(SlideContext);
-
     useEffect(() => {
         if (!document.getElementById('inspection-styles')) {
             const styleEl = document.createElement('style');
@@ -91,8 +86,8 @@ export default function Map() {
     return (
         <MapContainer
             // key={currentSlideIndex} // Key to force re-render when drawing state changes
-            center={latLng}
-            zoom={mapZoom}
+            center={[21.03, 105.804]}
+            zoom={16}
             style={{ height: "100%", width: "100%" }}
             keyboard={false}
             doubleClickZoom={false}

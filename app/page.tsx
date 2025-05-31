@@ -51,20 +51,16 @@ export const SlidesControlContext = createContext<SlidesControlContextProps>({
 
 type SlideContextProps = {
   layers: Layer[],
-  latLng: [number, number],
   currentLayerIndex: number,
   isPresenting: boolean,
   drawingStates: DrawingStates,
-  mapZoom: number,
   inspectingLayerId: string | null,
   slideHistory: HistoryStack,
   mapViewWorkaround?: number,
   setLayers: Dispatch<SetStateAction<Layer[]>>,
-  setLatLng: Dispatch<SetStateAction<[number, number]>>,
   setIsPresenting: Dispatch<SetStateAction<boolean>>,
   setCurrentLayerIndex: Dispatch<SetStateAction<number>>,
   setDrawingStates: Dispatch<SetStateAction<DrawingStates>>,
-  setMapZoom: Dispatch<SetStateAction<number>>,
   setInspectingLayerId: Dispatch<SetStateAction<string | null>>,
   setSlideHistory: Dispatch<SetStateAction<HistoryStack>>,
   undo: () => void,
@@ -73,7 +69,6 @@ type SlideContextProps = {
 
 export const SlideContext = createContext<SlideContextProps>({
   layers: [],
-  latLng: [21.03, 105.804],
   currentLayerIndex: -1,
   isPresenting: false,
   drawingStates: {
@@ -83,16 +78,13 @@ export const SlideContext = createContext<SlideContextProps>({
     fillColor: "#000000",
     fillOpacity: 0.2,
   },
-  mapZoom: 16,
   inspectingLayerId: null,
   slideHistory: new HistoryStack(),
   mapViewWorkaround: 0,
   setLayers: () => {},
-  setLatLng: () => {},
   setIsPresenting: () => {},
   setCurrentLayerIndex: () => {},
   setDrawingStates: () => {},
-  setMapZoom: () => {},
   setInspectingLayerId: () => {},
   setSlideHistory: () => {},
   undo: () => {},
@@ -109,8 +101,6 @@ export default function Home() {
 
   // CURRENT SLIDE
   const [layers, setLayers] = useState<Layer[]>([]);
-  const [latLng, setLatLng] = useState<[number, number]>([21.03, 105.804]);
-  const [mapZoom, setMapZoom] = useState<number>(16);
   const [drawingStates, setDrawingStates] = useState<DrawingStates>({
     isDrawing: false,
     drawingMode: -1,
@@ -144,8 +134,6 @@ export default function Home() {
     const currentSlide = newSlides[currentSlideIndex];
     if (currentSlide) {
       setLayers(currentSlide.layers);
-      setLatLng(currentSlide.latLng);
-      setMapZoom(currentSlide.mapZoom);
       setSlideHistory(currentSlide.slideHistory);
       setMapViewWorkaround(prev => prev + 1);
     }
@@ -159,14 +147,12 @@ export default function Home() {
         updatedSlides[currentSlideIndex] = {
           ...updatedSlides[currentSlideIndex],
           layers: layers,
-          latLng: latLng,
-          mapZoom: mapZoom,
           slideHistory: slideHistory,
         };
         return updatedSlides;
       });
     }
-  }, [layers, latLng, mapZoom, slideHistory]);
+  }, [layers, slideHistory]);
 
   // const lastScreenshotTime = useRef<number>(0);
   // useEffect(() => {
@@ -391,20 +377,16 @@ export default function Home() {
       }}>
         <SlideContext.Provider value={{
           layers,
-          latLng,
           currentLayerIndex,
           isPresenting,
           drawingStates,
-          mapZoom,
           inspectingLayerId,
           slideHistory,
           mapViewWorkaround,
           setLayers,
-          setLatLng,
           setIsPresenting,
           setCurrentLayerIndex,
           setDrawingStates,
-          setMapZoom,
           setInspectingLayerId,
           setSlideHistory,
           undo, redo,
