@@ -94,6 +94,14 @@ function LayersPane() {
   const [expandedLayers, setExpandedLayers] = useState<Record<string, boolean>>({});
   const [dragStartIndex, setDragStartIndex] = useState<number | null>(null);
   const [draggedOverIndex, setDraggedOverIndex] = useState<number | null>(null);
+  const layersPaneRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    // Scroll to the bottom of the layers pane when new layers are added
+    if (layersPaneRef.current) {
+      layersPaneRef.current.scrollTop = layersPaneRef.current.scrollHeight;
+    }
+  }, [layers]);
 
   const toggleLayerInfo = (e: React.MouseEvent<HTMLDivElement, MouseEvent>, layerId: string) => {
     e.stopPropagation();
@@ -203,7 +211,7 @@ function LayersPane() {
   return (
     <>
     <p className="text-white text-2xl m-2">Layers</p>
-    <div className="overflow-y-auto h-full"> {/* Add h-full here and keep overflow-y-auto */}
+    <div className="overflow-y-auto h-full" ref={layersPaneRef}> {/* Add h-full here and keep overflow-y-auto */}
     {layers.map((layer, index) => {
       let layerIcon: JSX.Element;
       switch (layer.type) {
