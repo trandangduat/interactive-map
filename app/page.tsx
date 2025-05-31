@@ -208,7 +208,7 @@ export default function Home() {
           break;
       }
     }
-  }, [slideHistory]);
+  }, [slideHistory.currentIndex]);
 
   const redo = useCallback(() => {
     const lastAction: (Action | null) = slideHistory.redo();
@@ -266,7 +266,7 @@ export default function Home() {
           break;
       }
     }
-  }, [slideHistory]);
+  }, [slideHistory.currentIndex]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
