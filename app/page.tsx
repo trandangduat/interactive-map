@@ -34,15 +34,19 @@ class Slide {
 type SlidesControlContextProps = {
   slides: Slide[],
   currentSlideIndex: number,
+  previousSlideIndex: number,
   setSlides: Dispatch<SetStateAction<Slide[]>>,
   setCurrentSlideIndex: Dispatch<SetStateAction<number>>,
+  setPreviousSlideIndex: Dispatch<SetStateAction<number>>,
 };
 
 export const SlidesControlContext = createContext<SlidesControlContextProps>({
   slides: [],
   currentSlideIndex: 0,
+  previousSlideIndex: -1,
   setSlides: () => {},
   setCurrentSlideIndex: () => {},
+  setPreviousSlideIndex: () => {},
 });
 
 type SlideContextProps = {
@@ -99,7 +103,9 @@ export default function Home() {
   // SLIDES CONTROL
   const slideThumbnailRef = useRef<HTMLImageElement | null>(null);
   const [slides, setSlides] = useState<Slide[]>([new Slide()]);
+  const [previousSlideIndex, setPreviousSlideIndex] = useState<number>(-1);
   const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
+  const [mapViewWorkaround, setMapViewWorkaround] = useState<number>(0);
 
   // CURRENT SLIDE
   const [layers, setLayers] = useState<Layer[]>([]);
@@ -116,7 +122,6 @@ export default function Home() {
   const [currentLayerIndex, setCurrentLayerIndex] = useState<number>(-1);
   const [inspectingLayerId, setInspectingLayerId] = useState<string | null>(null);
   const [slideHistory, setSlideHistory] = useState<HistoryStack>(new HistoryStack());
-  const [mapViewWorkaround, setMapViewWorkaround] = useState<number>(0);
 
   const resetSlide = () => {
     setDrawingStates({
@@ -379,8 +384,10 @@ export default function Home() {
       <SlidesControlContext.Provider value={{
           slides,
           currentSlideIndex,
+          previousSlideIndex,
           setSlides,
           setCurrentSlideIndex,
+          setPreviousSlideIndex,
       }}>
         <SlideContext.Provider value={{
           layers,

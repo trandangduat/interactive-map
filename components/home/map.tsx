@@ -6,8 +6,8 @@ import "leaflet/dist/leaflet.css";
 
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import { LatLngExpression } from 'leaflet';
-import { useContext, useEffect } from "react";
-import { SlideContext } from "@/app/page";
+import { use, useContext, useEffect } from "react";
+import { SlideContext, SlidesControlContext } from "@/app/page";
 import DrawingLayer from "./drawing-layer";
 import InspectingLayer from "./inspecting-layer";
 import Layers from "./layers";
@@ -29,12 +29,34 @@ const inspectionStyles = `
 `;
 
 function UpdateMapState() {
-    const { latLng, mapZoom, setLatLng, setMapZoom, mapViewWorkaround } = useContext(SlideContext);
+    const {
+        slides,
+        setSlides,
+        currentSlideIndex,
+        previousSlideIndex
+    } = useContext(SlidesControlContext);
+
+    const { mapViewWorkaround } = useContext(SlideContext);
 
     const map = useMap();
 
     useEffect(() => {
-        // Only update the map view after the latLng and mapZoom have been set to the current slide's values (when mapViewWorkaround increases)
+        // Save the map center and zoom level of the previous slide
+        if (previousSlideIndex >= 0) {
+            const previousSlide = slides[previousSlideIndex];
+            if (previousSlide) {
+                previousSlide.latLng = [map.getCenter().lat, map.getCenter().lng];
+                previousSlide.mapZoom = map.getZoom();
+                setSlides(prevSlides => {
+                    const updatedSlides = [...prevSlides];
+                    updatedSlides[previousSlideIndex] = {...previousSlide};
+                    return updatedSlides;
+                });
+            }
+        }
+
+        // Update the map view to the current slide's center and zoom level
+        const { latLng, mapZoom } = slides[currentSlideIndex];
         if (map.getCenter().equals(latLng) && map.getZoom() === mapZoom) {
             return;
         }
@@ -42,26 +64,6 @@ function UpdateMapState() {
             duration: 0.2,
         });
     }, [mapViewWorkaround]);
-
-    useEffect(() => {
-        const handleMapInteraction = () => {
-            const center: LatLngExpression = map.getCenter();
-            const zoom: number = map.getZoom();
-            // Only update if the values have actually changed to prevent potential loops
-            if (latLng && (center.lat !== latLng[0] || center.lng !== latLng[1] || zoom !== mapZoom)) {
-                setLatLng([center.lat, center.lng]);
-                setMapZoom(zoom);
-            }
-        };
-
-        map.on('moveend', handleMapInteraction);
-        map.on('zoomend', handleMapInteraction);
-
-        return () => {
-            map.off('moveend', handleMapInteraction);
-            map.off('zoomend', handleMapInteraction);
-        };
-    }, [latLng, mapZoom]);
 
     return null;
 };

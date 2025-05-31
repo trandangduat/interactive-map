@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { useContext } from "react";
 
 export default function SlidesControl() {
-  const { slides, currentSlideIndex, setCurrentSlideIndex } = useContext(SlidesControlContext);
+  const { slides, currentSlideIndex, setCurrentSlideIndex, setPreviousSlideIndex } = useContext(SlidesControlContext);
 
   return (
     <div className="z-10 bg-slate-600 w-full max-w-64 overflow-y-auto h-screen">
@@ -16,7 +16,8 @@ export default function SlidesControl() {
               currentSlideIndex === index && "border-slate-100 bg-slate-900 shadow-slate-700"
             )}
             onClick={() => {
-              setCurrentSlideIndex(index)
+              setPreviousSlideIndex(currentSlideIndex);
+              setCurrentSlideIndex(index);
             }}
           >
             {slide.slideThumbnail && (
@@ -35,6 +36,7 @@ export default function SlidesControl() {
         <button
           className="w-full bg-slate-700 aspect-video rounded-lg flex items-center justify-center border-3 border-slate-500 cursor-pointer shadow-xl shadow-transparent hover:border-slate-300 hover:bg-slate-900 hover:shadow-slate-700"
           onClick={() => {
+            setPreviousSlideIndex(currentSlideIndex);
             setCurrentSlideIndex((prevIndex) => (slides.length));
           }}
         >
