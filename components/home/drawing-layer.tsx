@@ -142,16 +142,18 @@ export default function DrawingLayer() {
                     //     } as NewLayerAction);
                     //     return newSlideHistory;
                     // });
-                    // Create 100 other objects with latlng near to the first object
-                    const LIMIT:number = 100;
+                    // Create 99 other objects with latlng near to the first object
+                    const LIMIT:number = 99;
+                    let generatedLayers: Layer[] = [];
                     setLayers((prevLayers) => {
                         const newLayers = [newLayer];
                         if (newLayer.type === "rectangle" && Array.isArray(newLayer.bounds)) {
                             const [origin, corner] = newLayer.bounds as [LatLngTuple, LatLngTuple];
                             for (let i = 1; i <= LIMIT; i++) {
-                                const offset = i * 0.0005;
-                                const shiftedOrigin: LatLngTuple = [origin[0] + offset, origin[1] + offset];
-                                const shiftedCorner: LatLngTuple = [corner[0] + offset, corner[1] + offset];
+                                const offset = Math.random() * 0.05 - 0.025; // Random offset between -0.00025 and 0.00025
+                                const offset2 = Math.random() * 0.05 - 0.025; // Random offset between -0.00025 and 0.00025
+                                const shiftedOrigin: LatLngTuple = [origin[0] + offset, origin[1] + offset2];
+                                const shiftedCorner: LatLngTuple = [corner[0] + offset, corner[1] + offset2];
                                 newLayers.push({
                                     ...newLayer,
                                     uuid: uuidv4(),
@@ -160,10 +162,11 @@ export default function DrawingLayer() {
                             }
                         } else if (newLayer.type === "circle" && newLayer.center) {
                             for (let i = 1; i <= LIMIT; i++) {
-                                const offset = i * 0.0005;
+                                const offset = Math.random() * 0.05 - 0.025;
+                                const offset2 = Math.random() * 0.05 - 0.025;
                                 const shiftedCenter: LatLngTuple = [
                                     newLayer.center[0] + offset,
-                                    newLayer.center[1] + offset,
+                                    newLayer.center[1] + offset2,
                                 ];
                                 newLayers.push({
                                     ...newLayer,
@@ -173,14 +176,15 @@ export default function DrawingLayer() {
                             }
                         } else if (newLayer.type === "arrow" && newLayer.start && newLayer.end) {
                             for (let i = 1; i <= LIMIT; i++) {
-                                const offset = i * 0.0005;
+                                const offset = Math.random() * 0.05 - 0.025;
+                                const offset2 = Math.random() * 0.05 - 0.025;
                                 const shiftedStart: LatLngTuple = [
                                     newLayer.start[0] + offset,
-                                    newLayer.start[1] + offset,
+                                    newLayer.start[1] + offset2,
                                 ];
                                 const shiftedEnd: LatLngTuple = [
                                     newLayer.end[0] + offset,
-                                    newLayer.end[1] + offset,
+                                    newLayer.end[1] + offset2,
                                 ];
                                 newLayers.push({
                                     ...newLayer,
@@ -190,15 +194,15 @@ export default function DrawingLayer() {
                                 });
                             }
                         }
+                        generatedLayers = [...newLayers];
                         return [...prevLayers, ...newLayers];
                     });
                     setSlideHistory((prev: HistoryStack) => {
                         const newSlideHistory = prev.copy();
-                        // Add history for the original layer and the 100 new ones
-                        for (let i = 0; i < LIMIT + 1; i++) {
+                        for (const newLayer of generatedLayers) {
                             newSlideHistory.push({
                                 type: "NEW_LAYER",
-                                layer: { ...newLayer, uuid: i === 0 ? newLayer.uuid : uuidv4() },
+                                layer: { ...newLayer },
                             } as NewLayerAction);
                         }
                         return newSlideHistory;

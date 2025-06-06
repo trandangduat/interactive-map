@@ -105,8 +105,8 @@ export default function HistoryPane() {
 
   return (
   <>
-    <p className="text-white text-2xl m-2 mb-4">History</p>
-    <div className="h-full overflow-y-auto" ref={historyBoardRef}> {/* Add h-full here */}
+    <p className="text-white text-2xl m-2 mb-4">History ({slideHistory.actions.length})</p>
+    <div className="h-full overflow-y-auto" ref={historyBoardRef}>
       {slideHistory.actions.map((action, index) => (
         <HistoryRowItem
           key={index}
