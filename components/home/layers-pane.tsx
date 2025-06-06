@@ -198,17 +198,17 @@ export default function LayersPane() {
   const { layers, setLayers } = useContext(LayersContext);
   const { inspectingLayerId, setInspectingLayerId } = useContext(PresentationContext);
   const { setSlideHistory } = useContext(HistoryContext);
-  const layersPaneRef = useRef<HTMLDivElement | null>(null);
+  // const layersPaneRef = useRef<HTMLDivElement | null>(null);
   const [dragStartIndex, setDragStartIndex] = useState<number | null>(null);
   const [draggedOverIndex, setDraggedOverIndex] = useState<number | null>(null);
   const [expandedLayers, setExpandedLayers] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    // Scroll to the bottom of the layers pane when new layers are added
-    if (layersPaneRef.current) {
-      layersPaneRef.current.scrollTop = layersPaneRef.current.scrollHeight;
-    }
-  }, [layers]);
+  // useEffect(() => {
+  //   // Scroll to the bottom of the layers pane when new layers are added
+  //   if (layersPaneRef.current) {
+  //     layersPaneRef.current.scrollTop = layersPaneRef.current.scrollHeight;
+  //   }
+  // }, [layers.length]);
 
   const handleSelectRow = useCallback((e: any, layerId: string) => {
     e.stopPropagation();
@@ -325,7 +325,7 @@ export default function LayersPane() {
   return (
     <>
       <p className="text-white text-2xl m-2">Layers</p>
-      <div className="overflow-y-auto h-full" ref={layersPaneRef}>
+      <div className="overflow-y-auto h-full" /*ref={layersPaneRef}*/>
         {layers.map((layer, index) =>
           <LayerItemRow
             key={layer.uuid}
