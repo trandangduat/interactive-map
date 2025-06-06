@@ -157,7 +157,7 @@ const LayerItemRow = memo(function({
           </div>
           <div
             className="cursor-pointer hover:bg-slate-600 p-1 rounded"
-            onClick={(e) => onToggleLock(e, index)}
+            onClick={(e) => onToggleLock(e, layer.uuid)}
             title={layer.isPinned ? "Unpin layer" : "Pin layer"}
           >
             {layer.isPinned ? (
@@ -168,7 +168,7 @@ const LayerItemRow = memo(function({
           </div>
           <div
             className="cursor-pointer hover:bg-slate-600 p-1 rounded"
-            onClick={(e) => onToggleHide(e, index)}
+            onClick={(e) => onToggleHide(e, layer.uuid)}
             title={layer.isHidden ? "Show layer" : "Hide layer"}
           >
             {layer.isHidden ? (
@@ -179,7 +179,7 @@ const LayerItemRow = memo(function({
           </div>
           <div
             className="cursor-pointer hover:bg-slate-600 p-1 rounded"
-            onClick={(e) => onRemove(e, index)}
+            onClick={(e) => onRemove(e, layer.uuid)}
             title="Remove layer"
           >
             <Trash2 size={16} />
@@ -215,72 +215,90 @@ export default function LayersPane() {
     setInspectingLayerId(layerId);
   }, []);
 
-  const toggleLockLayer = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>, index: number) => {
+  const toggleLockLayer = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>, layerId: string) => {
     e.stopPropagation(); // Prevent the click from propagating to the button's onClick
-    const isPinned = layers[index].isPinned;
 
-    setSlideHistory(prev => {
-      const newSlideHistory = prev.copy();
-      newSlideHistory.push({
-        type: isPinned ? "UNPIN_LAYER" : "PIN_LAYER",
-        layer: {...layers[index]}
-      });
-      return newSlideHistory;
-    });
-
-    setLayers(prevLayers => {
-      const newLayers = [...prevLayers];
+    let count:number = 0;
+    setLayers(prev => {
+      const index = prev.findIndex(layer => layer.uuid === layerId);
+      if (index === -1) return prev;
+      const newLayers = [...prev];
+      const targetLayer = newLayers[index];
       newLayers[index] = {
-        ...newLayers[index],
-        isPinned: !newLayers[index].isPinned,
+        ...targetLayer,
+        isPinned: !targetLayer.isPinned,
       };
+
+      if (count === 0) { // workaround to deal with react set state twice
+        setSlideHistory(prev => {
+          const newSlideHistory = prev.copy();
+          newSlideHistory.push({
+            type: targetLayer.isPinned ? "UNPIN_LAYER" : "PIN_LAYER",
+            layerId: layerId,
+          });
+          return newSlideHistory;
+        });
+        count++;
+      }
       return newLayers;
     });
-  }, [layers]);
+  }, []);
 
-  const toggleHideLayer = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>, index: number) => {
+  const toggleHideLayer = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>, layerId: string) => {
     e.stopPropagation();
-    const isHidden = layers[index].isHidden;
 
-    setSlideHistory(prev => {
-      const newSlideHistory = prev.copy();
-      newSlideHistory.push({
-        type: isHidden ? "UNHIDE_LAYER" : "HIDE_LAYER",
-        layer: {...layers[index]}
-      });
-      return newSlideHistory;
-    });
-
+    let count:number = 0;
     setLayers(prevLayers => {
+      const index = prevLayers.findIndex(layer => layer.uuid === layerId);
+      if (index === -1) return prevLayers;
       const newLayers = [...prevLayers];
+      const targetLayer = newLayers[index];
       newLayers[index] = {
-        ...newLayers[index],
-        isHidden: !newLayers[index].isHidden,
+        ...targetLayer,
+        isHidden: !targetLayer.isHidden,
       };
+
+      if (count === 0) { // workaround to deal with react set state twice
+        setSlideHistory(prev => {
+          const newSlideHistory = prev.copy();
+          newSlideHistory.push({
+            type: targetLayer.isHidden ? "UNHIDE_LAYER" : "HIDE_LAYER",
+            layerId: layerId,
+          });
+          return newSlideHistory;
+        });
+        count++;
+      }
       return newLayers;
     });
-  }, [layers]);
+  }, []);
 
-  const removeLayer = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>, index: number) => {
+  const removeLayer = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>, layerId: string) => {
     e.stopPropagation();
-    setSlideHistory(prev => {
-        const newSlideHistory = prev.copy();
-        newSlideHistory.push({
-          type: "DELETE_LAYER",
-          layer: {...layers[index]},
-          oldIndex: index,
-        } as DeleteLayerAction);
-        return newSlideHistory;
-    });
+
+    let count:number = 0;
     setLayers(prevLayers => {
+      const index = prevLayers.findIndex(layer => layer.uuid === layerId);
+      const targetLayer = prevLayers[index];
+
+      if (count === 0) { // workaround to deal with react set state twice
+        setSlideHistory(prev => {
+          const newSlideHistory = prev.copy();
+          newSlideHistory.push({
+            type: "DELETE_LAYER",
+            layer: {...targetLayer},
+            oldIndex: index,
+          } as DeleteLayerAction);
+          return newSlideHistory;
+        });
+        count++;
+      }
+
       const newLayers = [...prevLayers];
       newLayers.splice(index, 1);
-      return newLayers.map((layer, i) => ({
-        ...layer,
-        order: i,
-      }));
+      return newLayers;
     });
-  }, [layers]);
+  }, []);
 
   const toggleLayerInfo = useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>, layerId: string) => {
     e.stopPropagation();

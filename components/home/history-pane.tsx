@@ -43,22 +43,22 @@ const HistoryRowItem = memo(({
         ) : action.type === "PIN_LAYER" ? (
           <>
             <Pin size={16} />
-            <p>{action.type} - {action.layer!.uuid.slice(0, 5)}</p>
+            <p>{action.type} - {action.layerId!.slice(0, 5)}</p>
           </>
         ) : action.type === "UNPIN_LAYER" ? (
           <>
             <PinOff size={16} />
-            <p>{action.type} - {action.layer!.uuid.slice(0, 5)}</p>
+            <p>{action.type} - {action.layerId!.slice(0, 5)}</p>
           </>
         ) : action.type === "HIDE_LAYER" ? (
           <>
             <EyeOff size={16} />
-            <p>{action.type} - {action.layer!.uuid.slice(0, 5)}</p>
+            <p>{action.type} - {action.layerId!.slice(0, 5)}</p>
           </>
         ) : action.type === "UNHIDE_LAYER" ? (
           <>
             <Eye size={16} />
-            <p>{action.type} - {action.layer!.uuid.slice(0, 5)}</p>
+            <p>{action.type} - {action.layerId!.slice(0, 5)}</p>
           </>
         ) : action.type === "REORDER_LAYER" ? (
           <>

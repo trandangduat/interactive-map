@@ -3,6 +3,7 @@ import { Layer } from "./layer";
 export interface Action {
   type: string;
   layer?: Layer;
+  layerId?: string;
   oldIndex?: number;
   newIndex?: number;
 };
@@ -20,22 +21,22 @@ export interface DeleteLayerAction extends Action {
 
 export interface PinLayerAction extends Action {
   type: "PIN_LAYER";
-  layer: Layer;
+  layerId: string;
 };
 
 export interface UnPinLayerAction extends Action {
   type: "UNPIN_LAYER";
-  layer: Layer;
+  layerId: string;
 };
 
 export interface HideLayerAction extends Action {
   type: "HIDE_LAYER";
-  layer: Layer;
+  layerId: string;
 };
 
 export interface UnHideLayerAction extends Action {
   type: "UNHIDE_LAYER";
-  layer: Layer;
+  layerId: string;
 };
 
 export interface ReorderLayerAction extends Action {

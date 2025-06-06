@@ -165,7 +165,7 @@ export default function Home() {
         case "PIN_LAYER":
           setLayers((prevLayers) =>
             prevLayers.map(layer =>
-              layer.uuid === lastAction.layer!.uuid
+              layer.uuid === lastAction.layerId
                 ? { ...layer, isPinned: false }
                 : layer
             )
@@ -174,7 +174,7 @@ export default function Home() {
         case "UNPIN_LAYER":
           setLayers((prevLayers) =>
             prevLayers.map(layer =>
-              layer.uuid === lastAction.layer!.uuid
+              layer.uuid === lastAction.layerId
                 ? { ...layer, isPinned: true }
                 : layer
             )
@@ -183,7 +183,7 @@ export default function Home() {
         case "HIDE_LAYER":
           setLayers((prevLayers) =>
             prevLayers.map(layer =>
-              layer.uuid === lastAction.layer!.uuid
+              layer.uuid === lastAction.layerId
                 ? { ...layer, isHidden: false }
                 : layer
             )
@@ -192,7 +192,7 @@ export default function Home() {
         case "UNHIDE_LAYER":
           setLayers((prevLayers) =>
             prevLayers.map(layer =>
-              layer.uuid === lastAction.layer!.uuid
+              layer.uuid === lastAction.layerId
                 ? { ...layer, isHidden: true }
                 : layer
             )
@@ -223,7 +223,7 @@ export default function Home() {
         case "PIN_LAYER":
           setLayers((prevLayers) =>
             prevLayers.map(layer =>
-              layer.uuid === lastAction.layer!.uuid
+              layer.uuid === lastAction.layerId
                 ? { ...layer, isPinned: true }
                 : layer
             )
@@ -232,7 +232,7 @@ export default function Home() {
         case "UNPIN_LAYER":
           setLayers((prevLayers) =>
             prevLayers.map(layer =>
-              layer.uuid === lastAction.layer!.uuid
+              layer.uuid === lastAction.layerId
                 ? { ...layer, isPinned: false }
                 : layer
             )
@@ -241,7 +241,7 @@ export default function Home() {
         case "HIDE_LAYER":
           setLayers((prevLayers) =>
             prevLayers.map(layer =>
-              layer.uuid === lastAction.layer!.uuid
+              layer.uuid === lastAction.layerId
                 ? { ...layer, isHidden: true }
                 : layer
             )
@@ -250,7 +250,7 @@ export default function Home() {
         case "UNHIDE_LAYER":
           setLayers((prevLayers) =>
             prevLayers.map(layer =>
-              layer.uuid === lastAction.layer!.uuid
+              layer.uuid === lastAction.layerId
                 ? { ...layer, isHidden: false }
                 : layer
             )
