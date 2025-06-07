@@ -1,13 +1,13 @@
 import { Marker, Rectangle, Circle, Polyline, useMapEvents } from "react-leaflet";
 import L, { LatLngBoundsExpression, LatLngTuple, PointExpression } from 'leaflet';
-import { useContext, useState } from "react";
+import { memo, useContext, useState } from "react";
 import { DrawingStatesContext, HistoryContext, LayersContext, PresentationContext } from "@/app/page";
 import { v4 as uuidv4 } from "uuid";
 import { Layer } from "@/types/layer";
 import { NewLayerAction } from "@/types/history-stack";
 import { HistoryStack } from "@/app/history-stack";
 
-export default function DrawingLayer() {
+const DrawingLayer = memo(() => {
     const [rectOrgin, setRectOrigin] = useState<LatLngTuple | null>();
     const [rectBounds, setRectBounds] = useState<LatLngBoundsExpression | null>();
     const [circleCenter, setCircleCenter] = useState<LatLngTuple | null>();
@@ -291,4 +291,6 @@ export default function DrawingLayer() {
             })()}
         </>
     );
-}
+});
+
+export default DrawingLayer;

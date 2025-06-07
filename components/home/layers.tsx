@@ -77,7 +77,7 @@ const ObjectLayer = memo(({
     }
 });
 
-export default function Layers() {
+const Layers = memo(() => {
   const { currentLayerIndex, isPresenting, } = useContext(PresentationContext);
   const { layers } = useContext(LayersContext);
 
@@ -92,4 +92,6 @@ export default function Layers() {
         ))}
     </>
   )
-}
+});
+
+export default Layers;

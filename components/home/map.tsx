@@ -5,7 +5,7 @@ import "leaflet/dist/leaflet.css";
 // import "leaflet-defaulticon-compatibility";
 
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
-import { useContext, useEffect } from "react";
+import { memo, useContext, useEffect } from "react";
 import { SlidesControlContext } from "@/app/page";
 import DrawingLayer from "./drawing-layer";
 import InspectingLayer from "./inspecting-layer";
@@ -27,7 +27,7 @@ const inspectionStyles = `
 }
 `;
 
-function UpdateMapState({ mapViewWorkaround } : { mapViewWorkaround: number }) {
+const UpdateMapState = memo(({ mapViewWorkaround } : { mapViewWorkaround: number }) => {
     const { slides, setSlides, currentSlideIndex, previousSlideIndex } = useContext(SlidesControlContext);
 
     const map = useMap();
@@ -58,9 +58,9 @@ function UpdateMapState({ mapViewWorkaround } : { mapViewWorkaround: number }) {
     }, [mapViewWorkaround]);
 
     return null;
-};
+});
 
-export default function Map({ mapViewWorkaround } : { mapViewWorkaround: number }) {
+const Map = memo(({ mapViewWorkaround } : { mapViewWorkaround: number }) => {
     useEffect(() => {
         if (!document.getElementById('inspection-styles')) {
             const styleEl = document.createElement('style');
@@ -94,4 +94,6 @@ export default function Map({ mapViewWorkaround } : { mapViewWorkaround: number 
             <InspectingLayer />
         </MapContainer>
     )
-}
+});
+
+export default Map;
