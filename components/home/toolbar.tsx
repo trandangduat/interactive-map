@@ -1,7 +1,7 @@
 import { useContext, useState, useRef, useEffect } from "react";
 import { Button } from "../ui/button";
 import { DrawingStatesContext, HistoryContext, PresentationContext } from "@/app/page";
-import { ArrowBigRight, Check, Circle, Hand, MoveRight, RectangleHorizontal, Redo, Tv, Undo, Palette, ChevronDown } from "lucide-react";
+import { ArrowBigRight, Check, Circle, Hand, MoveRight, RectangleHorizontal, Redo, Tv, Undo, Palette, ChevronDown, Type } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const basicColors = [
@@ -217,6 +217,14 @@ export default function Toolbar() {
     }));
   };
 
+  const handleText = () => {
+    setDrawingStates(prev => ({
+      ...prev,
+      isDrawing: true,
+      drawingMode: 3,
+    }));
+  };
+
   const handleHand = () => {
     setDrawingStates(prev => ({
       ...prev,
@@ -257,6 +265,10 @@ export default function Toolbar() {
         <Button onClick={handleArrow} className={cn(drawingStates.isDrawing && drawingStates.drawingMode === 2 && activeButtonClass)}>
           <MoveRight size={16} />
           Arrow
+        </Button>
+        <Button onClick={handleText} className={cn(drawingStates.isDrawing && drawingStates.drawingMode === 3 && activeButtonClass)}>
+          <Type size={16} />
+          Text
         </Button>
         <div className="border-l-1 h-6 mx-3 border-slate-500"></div>
         <ColorPicker />

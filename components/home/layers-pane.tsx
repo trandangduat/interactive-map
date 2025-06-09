@@ -1,6 +1,6 @@
-import { ArrowLayer, CircleLayer, Layer, RectLayer } from "@/types/layer";
+import { ArrowLayer, CircleLayer, Layer, RectLayer, TextLayer } from "@/types/layer";
 import { cn } from "@/lib/utils";
-import { ArrowRight, ChevronDown, ChevronUp, Circle, Eye, EyeOff, Pin, PinOff, Square, Trash2 } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronUp, Circle, Eye, EyeOff, Pin, PinOff, Square, Trash2, Type } from "lucide-react";
 import { JSX, memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { HistoryContext, LayersContext, PresentationContext } from "@/app/page";
 import { DeleteLayerAction } from "@/types/history-stack";
@@ -58,9 +58,15 @@ function LayerInfoPanel({ layer, isSelected }: { layer: Layer, isSelected: boole
             <div className="flex items-center gap-1">
               <div
                 className="w-3 h-3 border border-white"
-                style={{backgroundColor: layer.pathOptions?.color || 'blue'}}
+                style={{
+                  backgroundColor: (layer.type === "text" ? layer.textStrokeColor : layer.pathOptions?.color || 'default'),
+                }}
               ></div>
-              <p>{layer.pathOptions?.color || 'default'}</p>
+              <p>
+                {layer.type === "text"
+                  ? layer.textStrokeColor
+                  : layer.pathOptions?.color || 'default'}
+              </p>
             </div>
           </div>
           <div className="flex items-center justify-between mt-1">
@@ -68,15 +74,27 @@ function LayerInfoPanel({ layer, isSelected }: { layer: Layer, isSelected: boole
             <div className="flex items-center gap-1">
               <div
                 className="w-3 h-3 border border-white"
-                style={{backgroundColor: layer.pathOptions?.fillColor || 'blue'}}
+                style={{backgroundColor: (layer.type === "text" ? layer.textColor : layer.pathOptions?.fillColor || 'default')}}
               ></div>
-              <p>{layer.pathOptions?.fillColor || 'default'}</p>
+              <p>
+                {layer.type === "text"
+                  ? layer.textColor
+                  : layer.pathOptions?.fillColor || 'default'}
+              </p>
             </div>
           </div>
-          <div className="flex items-center justify-between mt-1">
-            <p>Opacity:</p>
-            <p>{layer.pathOptions?.fillOpacity || 'default'}</p>
-          </div>
+          { layer.type === "text" && (
+            <div className="flex items-center justify-between mt-1">
+              <p>Font size:</p>
+              <p>{(layer as TextLayer).fontSize}px</p>
+            </div>
+          )}
+          {layer.type !== "text" && (
+            <div className="flex items-center justify-between mt-1">
+              <p>Opacity:</p>
+              <p>{layer.pathOptions?.fillOpacity || 'default'}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -122,6 +140,9 @@ const LayerItemRow = memo(function({
       break;
     case "arrow":
       layerIcon = <ArrowRight size={16} />;
+      break;
+    case "text":
+      layerIcon = <Type size={16} />;
       break;
     default:
       layerIcon = <Square size={16} />;

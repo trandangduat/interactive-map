@@ -28,5 +28,13 @@ export interface ArrowLayer extends BaseLayer {
   end: LatLngTuple
   pathOptions: PathOptions
 }
+export interface TextLayer extends BaseLayer {
+  type: "text"
+  textContent: string
+  textPosition: LatLngTuple
+  textColor: string
+  textStrokeColor: string
+  fontSize: number
+}
 
-export type Layer = RectLayer | CircleLayer | ArrowLayer;
+export type Layer = RectLayer | CircleLayer | ArrowLayer | TextLayer;

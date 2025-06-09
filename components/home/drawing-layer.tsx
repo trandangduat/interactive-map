@@ -1,6 +1,6 @@
 import { Marker, Rectangle, Circle, Polyline, useMapEvents } from "react-leaflet";
 import L, { LatLngBoundsExpression, LatLngTuple, PointExpression } from 'leaflet';
-import { memo, useContext, useState } from "react";
+import { memo, useContext, useState, useEffect } from "react";
 import { DrawingStatesContext, HistoryContext, LayersContext, PresentationContext } from "@/app/page";
 import { v4 as uuidv4 } from "uuid";
 import { Layer } from "@/types/layer";
@@ -14,11 +14,54 @@ const DrawingLayer = memo(() => {
     const [circleRadius, setCircleRadius] = useState<number>(0);
     const [arrowStart, setArrowStart] = useState<LatLngTuple | null>();
     const [arrowEnd, setArrowEnd] = useState<LatLngTuple | null>();
+    const [textOrigin, setTextOrigin] = useState<LatLngTuple | null>();
 
     const { setSlideHistory } = useContext(HistoryContext);
     const { setLayers } = useContext(LayersContext)
     const { drawingStates } = useContext(DrawingStatesContext);
     const { setInspectingLayerId } = useContext(PresentationContext);
+
+    // autofocus on the contenteditable div when it appears
+    useEffect(() => {
+        if (textOrigin && drawingStates.drawingMode === 3) {
+            setTimeout(() => {
+                const textEditable: HTMLElement | null = document.getElementById("text-editable");
+                const confirmTextBtn: HTMLElement | null = document.getElementById("confirm-text");
+                if (textEditable) {
+                    textEditable.focus();
+                    confirmTextBtn?.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const textContent = textEditable.textContent?.trim();
+                        if (textContent) {
+                            const newLayer: Layer = {
+                                type: "text",
+                                uuid: uuidv4(),
+                                isPinned: false,
+                                isHidden: false,
+                                textContent: textContent,
+                                textPosition: textOrigin,
+                                fontSize: drawingStates.fontSize || 16,
+                                textColor: drawingStates.fillColor || 'blue',
+                                textStrokeColor: drawingStates.strokeColor || 'blue',
+                            };
+                            setLayers((prevLayers) => [...prevLayers, newLayer]);
+                            setSlideHistory((prev: HistoryStack) => {
+                                const newSlideHistory = prev.copy();
+                                newSlideHistory.push({
+                                    type: "NEW_LAYER",
+                                    layer: {...newLayer},
+                                } as NewLayerAction);
+                                return newSlideHistory;
+                            });
+                            setInspectingLayerId(newLayer.uuid);
+                        }
+                        setTextOrigin(null);
+                    });
+                }
+            }, 0);
+        }
+    }, [textOrigin, drawingStates.drawingMode]);
 
     const map = useMapEvents({
         mousedown: (e) => {
@@ -33,6 +76,9 @@ const DrawingLayer = memo(() => {
                         break;
                     case 2: // Arrow
                         setArrowStart([e.latlng.lat, e.latlng.lng]);
+                        break;
+                    case 3: // Text
+                        setTextOrigin([e.latlng.lat, e.latlng.lng]);
                         break;
                 }
             }
@@ -226,7 +272,7 @@ const DrawingLayer = memo(() => {
         map.dragging.enable();
     }
 
-    if (!rectOrgin && !circleCenter && !arrowStart) {
+    if (!rectOrgin && !circleCenter && !arrowStart && !textOrigin) {
         return null;
     }
 
@@ -289,6 +335,35 @@ const DrawingLayer = memo(() => {
                     </>
                 );
             })()}
+            {textOrigin && drawingStates.drawingMode === 3 && (
+                <Marker
+                    position={textOrigin}
+                    icon={L.divIcon({
+                        className: 'text-marker-preview',
+                        html: `
+                        <div
+                          id="text-editable"
+                          tabindex="0"
+                          contenteditable="true"
+                          style="
+                            width: 100%;
+                            font-size: ${drawingStates.fontSize}px;
+                            font-weight: bold;
+                            color: ${drawingStates.fillColor};
+                            -webkit-text-stroke: 3px ${drawingStates.strokeColor};
+                            paint-order: stroke fill;
+                            outline: 2px solid #3b82f6;
+                          "
+                        ></div>
+                        `,
+                        iconSize: [200, drawingStates.fontSize!],
+                        iconAnchor: [50, 15] as PointExpression,
+                    })}
+                />
+            )}
+            <button id="confirm-text" className="bg-slate-700 px-4 py-3 text-sm rounded-sm text-white hover:bg-slate-900 font-bold absolute z-1000 right-0 m-4">
+                ✓ Confirm
+            </button>
         </>
     );
 });

@@ -286,6 +286,41 @@ export default function InspectingLayer() {
                 </>
             );
 
+        case "text":
+            return (
+                <Marker
+                    key={layer.uuid}
+                    position={layer.textPosition}
+                    icon={L.divIcon({
+                        className: 'text-marker',
+                        html: `
+                            <div
+                                style="
+                                    width: 100%;
+                                    font-size: ${layer.fontSize}px;
+                                    font-weight: bold;
+                                    color: transparent;
+                                    -webkit-text-stroke: 2px transparent;
+                                    paint-order: stroke fill;
+                                    outline: 2px solid #3b82f6;
+                                "
+                            >
+                                ${layer.textContent}
+                            </div>
+                        `,
+                        iconSize: [200, layer.fontSize],
+                        iconAnchor: [50, 15]
+                    })}
+                >
+                    <Popup>
+                        <div className="text-xs font-mono">
+                            <div>Text: {layer.textContent}</div>
+                            <div>Position: {layer.textPosition[0].toFixed(6)}, {layer.textPosition[1].toFixed(6)}</div>
+                        </div>
+                    </Popup>
+                </Marker>
+            );
+
         default:
             return null;
     }

@@ -72,6 +72,33 @@ const ObjectLayer = memo(({
                     />
                 </div>
             );
+
+        case "text":
+            console.log("eyye")
+            console.log(layer)
+            return (
+                <Marker
+                    key={layer.uuid}
+                    position={layer.textPosition}
+                    icon={L.divIcon({
+                        className: 'text-marker',
+                        html: `
+                        <div
+                          style="
+                            width: 100%;
+                            font-size: ${layer.fontSize}px;
+                            font-weight: bold;
+                            color: ${layer.textColor};
+                            -webkit-text-stroke: 3px ${layer.textStrokeColor};
+                            paint-order: stroke fill;
+                          "
+                    >${layer.textContent}</div>
+                        `,
+                        iconSize: [200, layer.fontSize],
+                        iconAnchor: [50, 15],
+                    })}
+                />
+            );
         default:
             return null;
     }
