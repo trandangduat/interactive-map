@@ -110,6 +110,7 @@ function ColorButton({ isStroke = true, color, onClick }: ColorButtonProps) {
     <Button
       onClick={onClick}
       title={isStroke ? "Stroke" : "Fill"}
+      className="bg-transparent! px-0"
     >
       <span className={`font-medium`}>{isStroke ? "Stroke:" : "Fill:"}</span>
       <div
@@ -257,6 +258,7 @@ export default function Toolbar() {
           <MoveRight size={16} />
           Arrow
         </Button>
+        <div className="border-l-1 h-6 mx-3 border-slate-500"></div>
         <ColorPicker />
       </div>
       <div className="flex flex-row items-center gap-2">
