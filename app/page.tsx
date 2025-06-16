@@ -55,7 +55,7 @@ export const LayersContext = createContext<{ layers: Layer[]; setLayers: Dispatc
   { layers: [], setLayers: () => {} }
 );
 export const DrawingStatesContext = createContext<{ drawingStates: DrawingStates; setDrawingStates: Dispatch<SetStateAction<DrawingStates>> }>(
-  { drawingStates: { isDrawing: false, drawingMode: -1, strokeColor: "#FFFFFF", fillColor: "#000000", fillOpacity: 0.2, fontSize: 20 }, setDrawingStates: () => {} }
+  { drawingStates: { isDrawing: false, drawingMode: -1, strokeColor: "#000000", fillColor: "#FFFFFF", fillOpacity: 0.2, fontSize: 20 }, setDrawingStates: () => {} }
 );
 export const PresentationContext = createContext<{ isPresenting: boolean; setIsPresenting: Dispatch<SetStateAction<boolean>>; currentLayerIndex: number; setCurrentLayerIndex: Dispatch<SetStateAction<number>>; inspectingLayerId: string | null; setInspectingLayerId: Dispatch<SetStateAction<string | null>> }>(
   { isPresenting: false, setIsPresenting: () => {}, currentLayerIndex: -1, setCurrentLayerIndex: () => {}, inspectingLayerId: null, setInspectingLayerId: () => {} }
@@ -77,8 +77,8 @@ export default function Home() {
   const [drawingStates, setDrawingStates] = useState<DrawingStates>({
     isDrawing: false,
     drawingMode: -1,
-    strokeColor: "#FFFFFF",
-    fillColor: "#000000",
+    strokeColor: "#000000",
+    fillColor: "#FFFFFF",
     fillOpacity: 0.2,
     fontSize: 20,
   });
@@ -91,8 +91,8 @@ export default function Home() {
     setDrawingStates({
       isDrawing: false,
       drawingMode: -1,
-      strokeColor: "#FFFFFF",
-      fillColor: "#000000",
+      strokeColor: "#000000",
+      fillColor: "#FFFFFF",
       fillOpacity: 0.2,
       fontSize: 20,
     });
